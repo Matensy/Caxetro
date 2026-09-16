@@ -74,8 +74,8 @@
 .destino .marca { font-size: 11px; color: var(--latao); font-variant-numeric: tabular-nums; }
 
 .destino--hero { padding: 22px 20px; }
-.destino--hero .nome { font-size: 40px; color: #fff3ea; line-height: .9; }
-.destino--hero .diz { color: rgba(255,238,228,.82); font-size: 13px; margin-top: 5px; }
+.destino--hero .nome { font-size: 40px; color: var(--esmalte-texto); line-height: .9; }
+.destino--hero .diz { color: var(--esmalte-texto); opacity: .8; font-size: 13px; margin-top: 5px; }
 
 .menu-rodape { grid-column: 1 / -1; display: flex; gap: 16px; align-items: center; font-size: 11.5px; color: #6f7f76; }
 
@@ -141,8 +141,9 @@
 .lobby-pe { display: flex; justify-content: space-between; align-items: center; gap: 14px; }
 .botao-grande {
   padding: 13px 34px; font-family: var(--display); font-size: 23px;
-  background: linear-gradient(177deg, #d4413c, var(--esmalte-fundo));
-  border: 2px solid rgba(255,225,200,.4); border-radius: 3px; color: #fff3ea;
+  background: linear-gradient(177deg, var(--esmalte-a), var(--esmalte-b));
+  border: 2px solid var(--esmalte-borda); border-radius: var(--r-chapa);
+  color: var(--esmalte-texto);
   box-shadow: var(--sombra-chapa);
 }
 .botao-grande:hover { filter: brightness(1.08); }

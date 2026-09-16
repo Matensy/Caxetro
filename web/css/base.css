@@ -40,6 +40,17 @@
   --display: 'Alfa Slab One', Georgia, 'Times New Roman', serif;
   --ui: 'Archivo', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
+  /* Superficies. Os temas de UI trocam estes tokens, nunca o seletor .chapa —
+     senao a especificidade do tema apaga a variante esmaltada. */
+  --chapa-a: #1c2b24;
+  --chapa-b: #14201b;
+  --chapa-borda: rgba(232,197,71,.24);
+  --chapa-brilho: rgba(242,230,206,.07);
+  --esmalte-a: #d4413c;
+  --esmalte-b: #6e1614;
+  --esmalte-texto: #fff3ea;
+  --esmalte-borda: rgba(255,225,200,.35);
+
   --r-chapa: 3px;      /* chapa esmaltada: canto quase reto */
   --r-carta: 7px;      /* carta: canto de baralho */
   --r-ficha: 999px;    /* ficha: redonda */
@@ -117,22 +128,24 @@ button:focus-visible, [tabindex]:focus-visible, a:focus-visible {
 /* Chapa esmaltada: a superficie base de quase toda a UI. */
 .chapa {
   position: relative;
-  background: linear-gradient(177deg, var(--fumo-alto), var(--fumo));
-  border: 1.5px solid rgba(232,197,71,.24);
+  background: linear-gradient(177deg, var(--chapa-a), var(--chapa-b));
+  border: 1.5px solid var(--chapa-borda);
   border-radius: var(--r-chapa);
   box-shadow: var(--sombra-chapa);
 }
 .chapa::after {
   content: '';
   position: absolute; inset: 3px;
-  border: 1px solid rgba(242,230,206,.07);
-  border-radius: 1px;
+  border: 1px solid var(--chapa-brilho);
+  border-radius: calc(var(--r-chapa) - 2px);
   pointer-events: none;
 }
 .chapa--latao { border-color: rgba(232,197,71,.5); }
 .chapa--esmalte {
-  background: linear-gradient(177deg, #d4413c, var(--esmalte-fundo));
-  border-color: rgba(255,225,200,.35);
+  --chapa-a: var(--esmalte-a);
+  --chapa-b: var(--esmalte-b);
+  --chapa-borda: var(--esmalte-borda);
+  color: var(--esmalte-texto);
 }
 
 /* Parafuso: detalhe de placa de rua, usado nos cantos das chapas grandes. */
@@ -155,4 +168,91 @@ button:focus-visible, [tabindex]:focus-visible, a:focus-visible {
 #girar h2 { font-size: 28px; color: var(--latao); margin-bottom: 10px; }
 @media (max-aspect-ratio: 1/1) and (max-width: 900px) {
   #girar { display: grid; }
+}
+
+/* ------------------------------------------------- temas de interface
+ * Cosmeticos da loja. Trocam so a cromia do chrome (menus, lojinha, HUD);
+ * o tabuleiro continua mandando na mesa.
+ */
+:root[data-ui="ui-claro"] {
+  --breu: #efe7d6;
+  --fumo: #e3d9c4;
+  --fumo-alto: #f6efe0;
+  --osso: #1f2a24;
+  --osso-fosco: #5d6b62;
+  --latao: #9a6f0d;
+  --esmalte: #b32f2b;
+  --verdete: #1f6a58;
+  --chapa-a: #fdf7ea;
+  --chapa-b: #e8dfcb;
+  --chapa-borda: rgba(154,111,13,.35);
+  --chapa-brilho: rgba(31,42,36,.07);
+  --esmalte-a: #c2372f;
+  --esmalte-b: #8e211b;
+  --sombra-chapa: 0 2px 0 rgba(0,0,0,.12), 0 8px 18px rgba(0,0,0,.14);
+}
+:root[data-ui="ui-claro"] body {
+  background: radial-gradient(120% 80% at 50% -10%, #fffaf0 0%, transparent 60%), var(--breu);
+}
+
+:root[data-ui="ui-retro"] {
+  --breu: #1a1208;
+  --fumo: #2a1d0c;
+  --fumo-alto: #392812;
+  --osso: #ffe9c4;
+  --osso-fosco: #c2a274;
+  --latao: #f0a202;
+  --esmalte: #d1462f;
+  --verdete: #3f7d4e;
+  --chapa-a: #392812;
+  --chapa-b: #2a1d0c;
+  --chapa-borda: rgba(240,162,2,.3);
+  --esmalte-a: #e0573c;
+  --esmalte-b: #8a2417;
+}
+:root[data-ui="ui-retro"] body {
+  background: radial-gradient(120% 80% at 50% -10%, #3a2711 0%, transparent 60%), var(--breu);
+}
+
+:root[data-ui="ui-neon"] {
+  --breu: #07031a;
+  --fumo: #140a2e;
+  --fumo-alto: #1e1040;
+  --osso: #f0e9ff;
+  --osso-fosco: #9b8cc4;
+  --latao: #2de2e6;
+  --esmalte: #ff3e8a;
+  --verdete: #7a5cff;
+  --chapa-a: #1e1040;
+  --chapa-b: #140a2e;
+  --chapa-borda: rgba(45,226,230,.35);
+  --esmalte-a: #ff3e8a;
+  --esmalte-b: #8d1046;
+}
+:root[data-ui="ui-neon"] body {
+  background: radial-gradient(120% 80% at 50% -10%, #23104e 0%, transparent 60%), var(--breu);
+}
+:root[data-ui="ui-neon"] .placa, :root[data-ui="ui-neon"] .destino--hero {
+  box-shadow: 0 0 22px rgba(45,226,230,.22), var(--sombra-chapa);
+}
+
+:root[data-ui="ui-pastel"] {
+  --breu: #2a2333;
+  --fumo: #383047;
+  --fumo-alto: #463c59;
+  --osso: #fdf0f5;
+  --osso-fosco: #c5b4d4;
+  --latao: #ffd6a5;
+  --esmalte: #ff8fab;
+  --verdete: #7fd4c1;
+  --chapa-a: #463c59;
+  --chapa-b: #383047;
+  --chapa-borda: rgba(255,214,165,.3);
+  --esmalte-a: #ff8fab;
+  --esmalte-b: #a44462;
+  --esmalte-texto: #2a2333;
+  --r-chapa: 10px;
+}
+:root[data-ui="ui-pastel"] body {
+  background: radial-gradient(120% 80% at 50% -10%, #453a58 0%, transparent 60%), var(--breu);
 }

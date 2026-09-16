@@ -19,7 +19,13 @@ go run . -web ../web
 O servidor Go é um file server com um endpoint de backup (`/api/save`). Toda a lógica do
 jogo roda no cliente — dá pra abrir `web/index.html` direto no navegador que funciona igual.
 
-## Gerar o APK
+## O APK
+
+O workflow **APK** monta e publica o `app-debug.apk` a cada push. O build mais recente
+está em [Actions → APK](https://github.com/Matensy/Caxetro/actions/workflows/apk.yml) —
+abra o run e baixe o artefato `caxeta-royale-debug-apk` (o `.apk` vem dentro de um `.zip`).
+
+Para montar na sua máquina:
 
 ```bash
 cd android
@@ -29,11 +35,11 @@ cd android
 
 O build copia `/web` para os assets do APK sozinho (task `copiarJogo`), então não existe
 cópia duplicada do jogo no repositório. O APK é um WebView em tela cheia, travado em
-paisagem, sem nenhuma permissão. Requer Android 7.0 (API 24) ou superior.
+paisagem, sem nenhuma permissão e sem acesso à rede. Requer Android 7.0 (API 24) ou
+superior. O último build deu **985 KiB** — bem abaixo da meta de 10 MB do escopo.
 
-Quem não tiver o Android SDK na máquina: o workflow **APK** (`.github/workflows/apk.yml`)
-monta e publica o `app-debug.apk` como artefato a cada push, e também roda sob demanda em
-*Actions → APK → Run workflow*.
+Como é um APK de debug, o Android vai pedir permissão de "instalar app de fonte
+desconhecida" na primeira vez.
 
 ---
 
@@ -48,7 +54,7 @@ monta e publica o `app-debug.apk` como artefato a cada push, e também roda sob 
 | Pergaminhos | 16, cada um com versão avançada |
 | Tabuleiros temáticos | 12, cada um com feltro, verso, naipes e arte própria |
 | Decks com modificador | 10 |
-| Cosméticos | 20 (animação de batida, moldura, tema de UI, som) |
+| Cosméticos | 20 (animação de batida, moldura, tema de interface, som de batida) |
 | Modos | Partida rápida, Campeonato, Cachetão |
 | Bots | Iniciante, Normal, Difícil |
 | Desafios diários | 3 por dia, sorteados de um bolo de 20 |

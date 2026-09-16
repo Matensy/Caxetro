@@ -33,7 +33,7 @@
 
     var carteira = U.chapa('carteira', [
       U.el('div', { class: 'valor fichas', text: U.fichas(s.fichas) }),
-      U.el('div', { class: 'rotulo', text: 'Fichas ganhas jogando. Nao tem loja de dinheiro de verdade.' })
+      U.el('div', { class: 'rotulo', text: 'Ganhas jogando. Aqui nao tem loja de dinheiro de verdade.' })
     ]);
 
     var tema = CR.themes.get(s.board);
