@@ -25,8 +25,15 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Preparar Android SDK
-        uses: android-actions/setup-android@v3
+      # O runner do ubuntu-latest ja traz a Android SDK com as licencas aceitas.
+      # O android-actions/setup-android tenta instalar o pacote "tools", que a SDK
+      # nao publica mais, e derruba o build.
+      - name: Conferir a Android SDK do runner
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          ls "$ANDROID_HOME/platforms" || true
+          ls "$ANDROID_HOME/build-tools" || true
+          echo "sdk.dir=$ANDROID_HOME" > android/local.properties
 
       - name: Cache do Gradle
         uses: actions/cache@v4
