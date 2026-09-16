@@ -1,0 +1,20 @@
+# Go
+server/save.json
+server/caxeta-royale
+
+# Android
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+*.apk
+*.aab
+*.keystore
+
+# Node / ferramentas
+node_modules/
+
+# Sistema
+.DS_Store
+Thumbs.db

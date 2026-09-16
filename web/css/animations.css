@@ -1,0 +1,49 @@
+/* Caxeta Royale — movimento. So entra quando algo de fato muda de estado. */
+
+@keyframes tela-entra { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes aviso-entra { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+@keyframes carta-entra {
+  from { opacity: 0; transform: translateY(26px) rotate(-6deg) scale(.86); }
+  to { opacity: 1; transform: none; }
+}
+.mao .carta[data-nova] { animation: carta-entra 260ms var(--ease) backwards; }
+
+@keyframes bate-flash {
+  0% { opacity: 0; transform: scale(.7); }
+  18% { opacity: 1; transform: scale(1.06); }
+  78% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.02); }
+}
+.bate-cartaz {
+  position: absolute; inset: 0; display: grid; place-items: center; z-index: 40; pointer-events: none;
+}
+.bate-cartaz span {
+  font-family: var(--display); font-size: 78px; color: var(--latao);
+  text-shadow: 0 5px 0 rgba(0,0,0,.5), 0 0 40px rgba(232,197,71,.6);
+  animation: bate-flash 1150ms var(--ease) forwards;
+}
+
+@keyframes vida-perde { 0%,100% { transform: none; } 25% { transform: translateX(-4px); } 60% { transform: translateX(3px); } }
+.jog[data-treme] { animation: vida-perde 320ms var(--ease); }
+
+@keyframes poder-pulso { from { box-shadow: 0 0 0 0 rgba(232,197,71,.6); } to { box-shadow: 0 0 0 16px rgba(232,197,71,0); } }
+.slot-poder[data-pulso] { animation: poder-pulso 620ms var(--ease); }
+
+@keyframes brilho-passa { from { background-position: -140% 0; } to { background-position: 240% 0; } }
+.destino--hero::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(105deg, transparent 38%, rgba(255,255,255,.17) 50%, transparent 62%);
+  background-size: 240% 100%;
+  animation: brilho-passa 4.5s 1.2s var(--ease) 2;
+}
+
+@keyframes contagem-gira { to { stroke-dashoffset: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}

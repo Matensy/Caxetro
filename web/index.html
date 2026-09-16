@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0b120f">
+<meta name="description" content="Caxeta Royale — a caxeta brasileira com coringas especiais, bencaos e lojinha entre rodadas.">
+<title>Caxeta Royale</title>
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/ui.css">
+<link rel="stylesheet" href="css/game.css">
+<link rel="stylesheet" href="css/animations.css">
+<link rel="icon" href="assets/ui/icone.svg" type="image/svg+xml">
+</head>
+<body>
+
+<div id="girar" role="alert">
+  <div>
+    <h2>Vire o aparelho</h2>
+    <p>Caxeta Royale joga deitado, pra mesa caber inteira na tela.</p>
+  </div>
+</div>
+
+<div id="stage-wrap">
+  <div id="stage">
+    <main id="tela-splash" class="tela" data-ativa></main>
+    <main id="tela-menu" class="tela" aria-label="Menu"></main>
+    <main id="tela-lobby" class="tela" aria-label="Montar a mesa"></main>
+    <main id="tela-mesa" class="tela" aria-label="Mesa de jogo"></main>
+    <main id="tela-passa" class="tela" aria-label="Passar o aparelho"></main>
+    <main id="tela-loja" class="tela" aria-label="Lojinha"></main>
+    <main id="tela-desafios" class="tela" aria-label="Desafios do dia"></main>
+    <main id="tela-ajuda" class="tela" aria-label="Como se joga"></main>
+    <main id="tela-ajustes" class="tela" aria-label="Ajustes"></main>
+    <main id="tela-fim" class="tela" aria-label="Resultado"></main>
+    <div id="avisos" aria-live="polite"></div>
+  </div>
+</div>
+
+<!-- Scripts classicos em ordem: roda igual em http e em file:// dentro do WebView. -->
+<script src="js/themes/glyphs.js"></script>
+<script src="js/themes/themes.js"></script>
+<script src="js/core/deck.js"></script>
+<script src="js/core/rules.js"></script>
+<script src="js/core/player.js"></script>
+<script src="js/powers/effects.js"></script>
+<script src="js/powers/jokers.js"></script>
+<script src="js/powers/blessings.js"></script>
+<script src="js/powers/astral.js"></script>
+<script src="js/powers/seals.js"></script>
+<script src="js/powers/vouchers.js"></script>
+<script src="js/core/game.js"></script>
+<script src="js/ai/bot.js"></script>
+<script src="js/save/storage.js"></script>
+<script src="js/shop/store.js"></script>
+<script src="js/render/sprites.js"></script>
+<script src="js/render/canvas.js"></script>
+<script src="js/render/animations.js"></script>
+<script src="js/audio/sfx.js"></script>
+<script src="js/ui/dom.js"></script>
+<script src="js/ui/hud.js"></script>
+<script src="js/ui/screens.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,158 @@
+/* Caxeta Royale — fundacoes: fontes, tokens, reset, tipografia.
+ * Direcao: letreiro esmaltado de botequim. Chapa pintada, latao, verde garrafa.
+ */
+
+@font-face {
+  font-family: 'Alfa Slab One';
+  src: url('../assets/fonts/alfa-slab-one.woff2') format('woff2');
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Archivo';
+  src: url('../assets/fonts/archivo.woff2') format('woff2');
+  font-weight: 100 900; font-style: normal; font-display: swap;
+}
+
+:root {
+  /* chapa e tinta */
+  --breu:      #0b120f;
+  --fumo:      #14201b;
+  --fumo-alto: #1c2b24;
+  --osso:      #f2e6ce;
+  --osso-fosco:#c3b79f;
+  --latao:     #e8c547;
+  --latao-fundo:#8a6a12;
+  --esmalte:   #c8322f;
+  --esmalte-fundo:#6e1614;
+  --verdete:   #2e7d6b;
+
+  /* tabuleiro — sobrescrito por CR.themes.apply() */
+  --felt-a:   #245243;
+  --felt-b:   #12312a;
+  --rail:     #5b3a22;
+  --rail-ink: #c79a5c;
+  --card-paper:#f4eddd;
+  --card-ink: #1e2521;
+  --suit-red: #c0342e;
+  --suit-black:#1e2521;
+  --board-glow:#e8c547;
+
+  --display: 'Alfa Slab One', Georgia, 'Times New Roman', serif;
+  --ui: 'Archivo', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --r-chapa: 3px;      /* chapa esmaltada: canto quase reto */
+  --r-carta: 7px;      /* carta: canto de baralho */
+  --r-ficha: 999px;    /* ficha: redonda */
+
+  --sombra-chapa: 0 2px 0 rgba(0,0,0,.45), 0 8px 18px rgba(0,0,0,.4);
+  --dur: 180ms;
+  --ease: cubic-bezier(.2,.7,.3,1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--breu);
+  color: var(--osso);
+  font-family: var(--ui);
+  font-size: 15px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+body {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 80% at 50% -10%, #1a2a22 0%, transparent 60%),
+    var(--breu);
+}
+
+h1, h2, h3 { font-family: var(--display); font-weight: 400; letter-spacing: .005em; line-height: .96; }
+
+/* Numeros tabulares em toda parte que conta: vidas, fichas, valores. */
+.num, .fichas, .vida-num, .preco { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1; }
+
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+button:focus-visible, [tabindex]:focus-visible, a:focus-visible {
+  outline: 3px solid var(--latao);
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: rgba(0,0,0,.28); }
+::-webkit-scrollbar-thumb { background: var(--fumo-alto); border-radius: 9px; }
+::-webkit-scrollbar-thumb:hover { background: var(--rail); }
+
+/* --------------------------------------------------------------- palco */
+
+#stage {
+  position: relative;
+  width: 960px;
+  height: 540px;
+  transform-origin: top left;
+  overflow: hidden;
+  background: var(--breu);
+}
+#stage-wrap { position: fixed; inset: 0; }
+
+.tela {
+  position: absolute;
+  inset: 0;
+  display: none;
+  animation: tela-entra 240ms var(--ease);
+}
+.tela[data-ativa] { display: block; }
+
+/* ---------------------------------------------------------- utilitario */
+
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.hide { display: none !important; }
+
+/* Chapa esmaltada: a superficie base de quase toda a UI. */
+.chapa {
+  position: relative;
+  background: linear-gradient(177deg, var(--fumo-alto), var(--fumo));
+  border: 1.5px solid rgba(232,197,71,.24);
+  border-radius: var(--r-chapa);
+  box-shadow: var(--sombra-chapa);
+}
+.chapa::after {
+  content: '';
+  position: absolute; inset: 3px;
+  border: 1px solid rgba(242,230,206,.07);
+  border-radius: 1px;
+  pointer-events: none;
+}
+.chapa--latao { border-color: rgba(232,197,71,.5); }
+.chapa--esmalte {
+  background: linear-gradient(177deg, #d4413c, var(--esmalte-fundo));
+  border-color: rgba(255,225,200,.35);
+}
+
+/* Parafuso: detalhe de placa de rua, usado nos cantos das chapas grandes. */
+.parafuso {
+  position: absolute; width: 9px; height: 9px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #cfc4ad, #4c4438 70%);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.4);
+}
+.parafuso::before {
+  content: ''; position: absolute; left: 1.5px; right: 1.5px; top: 4px;
+  height: 1.2px; background: rgba(0,0,0,.55); transform: rotate(28deg);
+}
+
+/* Aviso de orientacao */
+#girar {
+  position: fixed; inset: 0; display: none;
+  place-items: center; text-align: center; padding: 24px;
+  background: var(--breu); z-index: 999;
+}
+#girar h2 { font-size: 28px; color: var(--latao); margin-bottom: 10px; }
+@media (max-aspect-ratio: 1/1) and (max-width: 900px) {
+  #girar { display: grid; }
+}

@@ -1,0 +1,32 @@
+name: Testes
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  motor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Regras da caxeta
+        run: node tools/test-rules.js
+      - name: Cruzar o calculo de "na boa" com forca bruta
+        run: node tools/test-needs.js
+      - name: Simular partidas so de bots
+        run: node tools/test-sim.js 30
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - name: Servidor Go
+        working-directory: server
+        run: |
+          go vet ./...
+          go build ./...

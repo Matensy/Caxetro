@@ -1,0 +1,218 @@
+/* Caxeta Royale — a mesa */
+
+#tela-mesa[data-ativa] { display: block; }
+
+.mesa-feltro { position: absolute; inset: 0; background-color: var(--felt-b); }
+/* Tres camadas: cor base, textura do tabuleiro e a luz que cai em cima da mesa. */
+.mesa-feltro::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(86% 70% at 50% 38%, var(--felt-a), transparent 78%);
+  opacity: .95;
+}
+.mesa-feltro::after {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(58% 46% at 50% 38%, rgba(255,247,222,.2), transparent 74%),
+              linear-gradient(180deg, rgba(0,0,0,.26), transparent 24%, rgba(0,0,0,.34));
+}
+/* Borda de madeira da mesa. */
+.mesa-feltro .borda {
+  position: absolute; inset: 0; pointer-events: none;
+  box-shadow: inset 0 0 0 7px var(--rail), inset 0 0 0 8px rgba(0,0,0,.45),
+              inset 0 0 44px rgba(0,0,0,.5);
+}
+#fx-canvas { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+
+.mesa-conteudo { position: absolute; inset: 0; z-index: 4; display: grid; grid-template-rows: auto 1fr auto; }
+
+/* --------------------------------------------------------- placar topo */
+
+.placar {
+  display: flex; gap: 7px; padding: 8px 12px; align-items: stretch;
+  background: linear-gradient(180deg, rgba(0,0,0,.45), transparent);
+}
+.jog {
+  flex: 1; max-width: 168px; padding: 6px 9px;
+  background: rgba(8,14,11,.66); border: 1px solid rgba(242,230,206,.14);
+  border-radius: 2px; border-top: 3px solid var(--rail);
+  display: grid; gap: 3px; position: relative;
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.jog[data-vez] { border-top-color: var(--latao); background: rgba(30,24,6,.8); }
+.jog[data-morto] { opacity: .38; filter: grayscale(1); }
+.jog .linha1 { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+.jog .nome { font-weight: 700; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jog .tipo { font-size: 9.5px; color: var(--osso-fosco); letter-spacing: .03em; }
+.jog .vidas { display: flex; gap: 2.5px; flex-wrap: wrap; }
+.jog .vida { width: 8px; height: 8px; border-radius: 50%; background: var(--esmalte); box-shadow: inset 0 -1px 0 rgba(0,0,0,.35); }
+.jog .vida[data-perdida] { background: rgba(242,230,206,.14); box-shadow: none; }
+.jog .selos { display: flex; gap: 4px; font-size: 9.5px; align-items: center; min-height: 12px; }
+.selo-boa { color: #7fe0c0; font-weight: 700; }
+.selo-queimado { color: #e08b7f; font-weight: 700; }
+.selo-correu { color: var(--osso-fosco); }
+.jog .cartas-cont { font-size: 9.5px; color: var(--rail-ink); font-variant-numeric: tabular-nums; }
+
+/* ---------------------------------------------------------- miolo */
+
+.miolo { display: grid; grid-template-columns: 116px 1fr 116px; align-items: center; gap: 8px; padding: 0 12px; min-height: 0; }
+
+.trilho { display: grid; gap: 6px; align-content: center; }
+.trilho h4 { font-size: 9.5px; color: rgba(255,255,255,.5); font-weight: 700; font-family: var(--ui); }
+.slot-poder {
+  height: 54px; border-radius: 3px; border: 1.5px dashed rgba(255,255,255,.18);
+  display: grid; grid-template-columns: 54px 1fr; align-items: center; gap: 7px;
+  font-size: 10px; color: rgba(255,255,255,.34);
+  background: rgba(0,0,0,.24); overflow: hidden; position: relative; text-align: left;
+  padding: 0;
+}
+.slot-poder:not(.cheio) { display: grid; place-items: center; }
+.slot-poder.cheio { border-style: solid; border-color: rgba(255,255,255,.3); cursor: pointer; }
+.slot-poder .power-emblema { width: 54px; height: 54px; display: block; }
+.slot-nome {
+  font-size: 9.5px; font-weight: 700; line-height: 1.15; color: rgba(255,255,255,.82);
+  padding-right: 5px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+}
+.slot-poder.cheio:hover { border-color: var(--board-glow); }
+.slot-poder.cheio:hover .slot-nome { color: var(--board-glow); }
+
+.pilhas { display: flex; justify-content: center; align-items: flex-start; gap: 22px; }
+.pilha-col { display: grid; justify-items: center; gap: 5px; }
+.pilha-col .rot { font-size: 10px; color: rgba(255,255,255,.62); font-weight: 700; }
+.pilha-col .sub { font-size: 9.5px; color: rgba(255,255,255,.4); }
+
+.carta {
+  width: 64px; height: 92px; border-radius: var(--r-carta);
+  filter: drop-shadow(0 4px 7px rgba(0,0,0,.5));
+  position: relative; flex: none;
+}
+.carta .card-svg { width: 100%; height: 100%; display: block; }
+.carta-clicavel { cursor: pointer; transition: transform var(--dur) var(--ease); }
+.carta-clicavel:hover { transform: translateY(-5px); }
+.carta-clicavel:disabled { cursor: default; opacity: .55; }
+.carta-clicavel:disabled:hover { transform: none; }
+
+.monte { position: relative; }
+.monte .sombra {
+  position: absolute; border-radius: var(--r-carta); background: rgba(0,0,0,.4);
+  width: 64px; height: 92px;
+}
+.monte .sombra:nth-child(1) { transform: translate(3px, 3px); }
+.monte .sombra:nth-child(2) { transform: translate(1.5px, 1.5px); }
+.vazio {
+  width: 64px; height: 92px; border-radius: var(--r-carta);
+  border: 1.5px dashed rgba(255,255,255,.2); display: grid; place-items: center;
+  font-size: 10px; color: rgba(255,255,255,.35);
+}
+
+.vira-caixa { position: relative; }
+.vira-caixa .curinga-diz {
+  margin-top: 5px; font-size: 10px; text-align: center; color: var(--board-glow);
+  font-weight: 700; line-height: 1.2;
+}
+
+/* ------------------------------------------------------------- mao */
+
+.rodape-mesa { display: grid; grid-template-columns: 152px 1fr 212px; gap: 10px; padding: 6px 12px 12px; align-items: end; }
+
+.acoes { display: grid; gap: 5px; }
+.acao {
+  padding: 8px 10px; font-weight: 700; font-size: 13px; border-radius: 2px;
+  background: rgba(10,16,13,.8); border: 1.5px solid rgba(242,230,206,.22); color: var(--osso);
+  text-align: left; transition: transform var(--dur) var(--ease);
+}
+.acao small { display: block; font-weight: 400; font-size: 10px; color: var(--osso-fosco); }
+.acao:hover:not([disabled]) { transform: translateX(3px); border-color: var(--board-glow); }
+.acao[disabled] { opacity: .35; cursor: not-allowed; }
+.acao--bater { background: linear-gradient(177deg, #d4413c, var(--esmalte-fundo)); border-color: rgba(255,225,200,.45); color: #fff3ea; }
+.acao--boa { border-color: rgba(127,224,192,.5); color: #a9f0da; }
+
+.mao-area { display: grid; gap: 4px; justify-items: center; }
+.mao {
+  display: flex; justify-content: center; align-items: flex-end;
+  min-height: 108px; padding-top: 10px;
+}
+.mao .carta {
+  margin-inline: -7px;
+  transition: transform 160ms var(--ease), filter 160ms var(--ease);
+  cursor: grab;
+}
+.mao .carta:hover { transform: translateY(-11px); z-index: 5; }
+.mao .carta[data-sel] { transform: translateY(-16px); filter: drop-shadow(0 0 9px var(--board-glow)); z-index: 6; }
+.mao .carta[data-arrastando] { opacity: .45; }
+.mao .carta[data-alvo] { transform: translateX(7px); }
+
+.medidor { display: flex; align-items: center; gap: 7px; font-size: 10.5px; color: rgba(255,255,255,.6); }
+.medidor .trilha { width: 150px; height: 4px; background: rgba(0,0,0,.45); border-radius: 3px; overflow: hidden; }
+.medidor .trilha i { display: block; height: 100%; background: var(--board-glow); transition: width 260ms var(--ease); }
+
+/* ------------------------------------------------------- sobreposicoes */
+
+.sobrepor {
+  position: absolute; inset: 0; z-index: 30; display: grid; place-items: center;
+  background: rgba(4,8,6,.72); backdrop-filter: blur(3px);
+}
+.sobrepor .caixa { padding: 20px 26px; max-width: 560px; text-align: center; }
+.sobrepor h3 { font-size: 26px; color: var(--latao); }
+.sobrepor p { font-size: 13px; color: var(--osso-fosco); margin: 7px 0 14px; }
+.sobrepor .botoes { display: flex; gap: 9px; justify-content: center; }
+.sobrepor .botoes button { padding: 9px 18px; font-weight: 700; font-size: 14px; border-radius: 2px; border: 1.5px solid rgba(242,230,206,.3); }
+.sobrepor .botoes .sim { background: var(--latao); color: #26200a; border-color: var(--latao); }
+.sobrepor .cartas-linha { display: flex; gap: 6px; justify-content: center; margin: 12px 0; }
+.sobrepor .cartas-linha .carta { width: 52px; height: 75px; }
+
+.combo-linha { display: flex; gap: 14px; justify-content: center; margin: 14px 0 6px; }
+.combo { display: flex; gap: 3px; padding: 7px; background: rgba(0,0,0,.4); border-radius: 3px; border: 1px solid rgba(255,255,255,.12); }
+.combo .carta { width: 44px; height: 64px; }
+.combo .rot { position: absolute; }
+
+/* Registro lateral */
+.registro {
+  position: absolute; right: 11px; bottom: 9px; width: 212px; max-height: 92px;
+  overflow: hidden; display: grid; gap: 2px; align-content: end;
+  font-size: 10.5px; color: rgba(255,255,255,.6); z-index: 5; pointer-events: none;
+}
+.registro div { background: rgba(4,8,6,.5); padding: 2px 6px; border-radius: 2px; border-left: 2px solid transparent; }
+.registro div[data-tag="bater"] { border-left-color: var(--latao); color: #ffe9a8; }
+.registro div[data-tag="power"] { border-left-color: #9b7fe0; color: #ddd0ff; }
+.registro div[data-tag="queima"] { border-left-color: var(--esmalte); color: #ffc9c4; }
+.registro div[data-tag="naboa"] { border-left-color: #7fe0c0; color: #c4ffee; }
+
+/* Espectador */
+.espectando { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); z-index: 20;
+  font-family: var(--display); font-size: 22px; color: rgba(255,255,255,.5); pointer-events: none; }
+
+
+/* ------------------------------------------------------- tabuleiro claro
+ * Azulejo (e qualquer outro feltro claro) precisa da cromia invertida, senao
+ * rotulo branco sobre ladrilho branco some.
+ */
+:root[data-board-light="yes"] .trilho h4,
+:root[data-board-light="yes"] .pilha-col .rot {
+  color: rgba(12,32,60,.72);
+}
+:root[data-board-light="yes"] .pilha-col .sub,
+:root[data-board-light="yes"] .medidor {
+  color: rgba(12,32,60,.6);
+}
+:root[data-board-light="yes"] .slot-poder {
+  background: rgba(255,255,255,.62);
+  border-color: rgba(12,32,60,.26);
+}
+:root[data-board-light="yes"] .slot-nome { color: rgba(12,32,60,.86); }
+:root[data-board-light="yes"] .slot-poder:not(.cheio) { color: rgba(12,32,60,.45); }
+:root[data-board-light="yes"] .vazio {
+  border-color: rgba(12,32,60,.3); color: rgba(12,32,60,.5);
+}
+:root[data-board-light="yes"] .acao {
+  background: rgba(255,255,255,.86); color: #12325a; border-color: rgba(12,32,60,.24);
+}
+:root[data-board-light="yes"] .acao small { color: rgba(12,32,60,.62); }
+:root[data-board-light="yes"] .acao--bater {
+  background: linear-gradient(177deg, #d4413c, #8e211e); color: #fff3ea;
+}
+:root[data-board-light="yes"] .acao--boa { color: #0e5c4a; border-color: rgba(14,92,74,.5); }
+:root[data-board-light="yes"] .medidor .trilha { background: rgba(12,32,60,.2); }
+:root[data-board-light="yes"] .registro div {
+  background: rgba(255,255,255,.78); color: #16304f;
+}
+:root[data-board-light="yes"] .registro { color: #16304f; }
+:root[data-board-light="yes"] .espectando { color: rgba(12,32,60,.6); }

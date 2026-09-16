@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Tema.CaxetaRoyale" parent="@android:style/Theme.Material.NoActionBar.Fullscreen">
+        <item name="android:windowBackground">@color/breu</item>
+        <item name="android:colorBackground">@color/breu</item>
+        <item name="android:windowContentTransitions">false</item>
+        <item name="android:navigationBarColor">@color/breu</item>
+        <item name="android:statusBarColor">@color/breu</item>
+    </style>
+</resources>
