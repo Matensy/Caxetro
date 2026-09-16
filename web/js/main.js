@@ -256,11 +256,12 @@
       return;
     }
 
-    // Na rede cada um tem o proprio aparelho: nada de tela de passar a vez,
-    // e este cliente so desenha quando a vez e de quem esta nele.
+    // Na rede cada um tem o proprio aparelho: nada de tela de passar a vez.
     if (CR.online.ativo) {
       CR.hud.desenhar();
-      if (p.idx === CR.online.meuIdx) armarTimer(p);
+      // O dono conta o tempo de todo mundo, senao um celular esquecido na mesa
+      // trava a partida pros outros.
+      if (p.idx === CR.online.meuIdx || CR.online.modo === 'dono') armarTimer(p);
       return;
     }
 
@@ -289,9 +290,11 @@
       if (!jogo) { limparTimer(); return; }
       if (resta <= 0) {
         limparTimer();
-        U.aviso('Tempo esgotado. Jogada automatica.', 'ruim');
+        if (jogo.state !== 'turn' || jogo.current() !== p) return;
+        U.aviso('Tempo de ' + p.name + ' esgotado. Jogada automatica.', 'ruim');
         CR.bot.step(jogo, p);
         CR.hud.desenhar();
+        if (CR.online.modo === 'dono') CR.online.agendarRetrato();
         tocar();
       }
     }, 1000);

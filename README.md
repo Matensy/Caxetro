@@ -63,6 +63,8 @@ go run . -web ../web
 Dá pra misturar bots na mesa online. Nada sai pra internet, não tem conta e não tem
 cadastro: a sala vive na memória do servidor e some quando o dono fecha.
 
+Se alguém cair no meio da partida, a cadeira vira bot e o jogo continua.
+
 **A mão de cada um fica no aparelho de cada um.** O dono não manda o estado inteiro pra
 todo mundo — ele monta um retrato por jogador, e a mão alheia simplesmente não vai junto.
 O `tools/test-lan.js` verifica isso a cada execução.
@@ -171,6 +173,7 @@ node tools/test-needs.js    # cruza o cálculo de "na boa" com força bruta em 4
 node tools/test-sim.js 60   # 60 partidas só de bots, procurando travamento
 node tools/test-ui.js       # joga uma partida inteira pelo DOM, no Chromium
 node tools/test-lan.js     # dois navegadores numa sala: joga e confere que a mão não vaza
+node tools/test-lan-queda.js  # um jogador some no meio: a cadeira vira bot e a mesa segue
 node tools/screenshots.js   # regera as fotos de docs/imagens
 ```
 

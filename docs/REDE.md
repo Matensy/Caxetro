@@ -57,3 +57,16 @@ código no outro, coloca um bot na mesa e joga até a partida acabar. Ele falha 
 - os dois aparelhos ficarem em estados diferentes depois que a poeira assenta;
 - qualquer carta da mão de um aparecer no outro;
 - alguma exceção estourar em qualquer um dos dois.
+
+`node tools/test-lan-queda.js` fecha o navegador de um dos jogadores no meio da partida e
+verifica que a cadeira dele vira bot e a mesa continua andando.
+
+## Quando alguém cai
+
+Celular travou, wifi caiu, alguém fechou o navegador: o dono percebe pela lista da sala,
+troca aquela cadeira por um bot e a partida segue. O nome fica marcado no registro da mesa.
+Se quem cair for o dono, a sala fecha e todo mundo volta pro menu — a partida morava no
+aparelho dele.
+
+O tempo por vez, quando ligado, vale pra mesa inteira: é o dono quem conta, senão um
+celular esquecido em cima da mesa travaria o jogo dos outros.

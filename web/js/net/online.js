@@ -194,7 +194,35 @@
 
   /* ------------------------------------------------------------- comum */
 
+  /**
+   * Alguem fechou o celular no meio da partida. Em vez de travar a mesa
+   * esperando pra sempre, a cadeira vira bot e o jogo segue.
+   */
+  function conferirQuemSaiu(lista) {
+    if (!sou('dono') || !jogo || jogo.state === 'gameOver') return;
+    var presentes = {};
+    lista.forEach(function (j) { presentes[j.id] = true; });
+    var mudou = false;
+    Object.keys(peerDoIdx).forEach(function (idx) {
+      var peer = peerDoIdx[idx];
+      if (presentes[peer]) return;
+      var p = jogo.players[+idx];
+      if (!p || p.isBot) return;
+      p.isBot = true;
+      p.botLevel = 'normal';
+      p.saiu = true;
+      jogo.log(p.name + ' caiu da mesa. Um bot assumiu a cadeira.', 'system');
+      mudou = true;
+    });
+    if (!mudou) return;
+    CR.ui.aviso('Alguem saiu da sala. Um bot assumiu a cadeira.', 'ruim');
+    CR.hud.desenhar();
+    agendarRetrato();
+    CR.app.tocar();
+  }
+
   function ligarOuvintes() {
+    CR.lan.on('sala', conferirQuemSaiu);
     CR.lan.on('acao', receberAcao);
     CR.lan.on('estado', receberEstado);
     CR.lan.on('evento', receberEvento);
@@ -220,6 +248,7 @@
   }
 
   CR.online = {
+    conferirQuemSaiu: conferirQuemSaiu,
     abrirComoDono: abrirComoDono, abrirComoConvidado: abrirComoConvidado,
     ligarOuvintes: ligarOuvintes, encerrar: encerrar,
     mandarRetratos: mandarRetratos, agendarRetrato: agendarRetrato,
