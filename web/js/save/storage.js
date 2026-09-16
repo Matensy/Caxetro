@@ -19,7 +19,7 @@
     equipado: { bater: 'bater-confete', moldura: 'moldura-bronze', ui: 'ui-escuro', som: 'som-classico' },
     cardMarks: {},         // "rank:suit" -> {seal, edition}
     nome: 'Voce',
-    opcoes: { som: true, musica: true, naipesClassicos: false, dica: true, timer: 0 },
+    opcoes: { som: true, musica: true, naipesClassicos: false, dica: true, timer: 0, organizar: true },
     desafios: { dia: '', lista: [], feitos: {} },
     stats: { partidas: 0, vitorias: 0, batidas: 0, maosBatidas: 0, fichasTotais: 0, ultimoDia: '' }
   };

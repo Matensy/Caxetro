@@ -38,7 +38,10 @@
   function comecarPartida(cfg) {
     var s = CR.save.dados;
     cfgAtual = cfg;
-    var deck = CR.store.deckAtual();
+    var classico = cfg.modo === 'classico';
+    if (classico) { cfg.coringas = false; cfg.bencoes = false; cfg.pergaminhos = false; }
+    // No classico o baralho e o baralho: sem modificador de deck, sem selo.
+    var deck = classico ? CR.store.DECKS[0] : CR.store.deckAtual();
 
     var assentos = cfg.cadeiras.map(function (c, i) {
       var meu = !c.bot && i === primeiroHumano(cfg);
@@ -86,7 +89,7 @@
     });
 
     // Selos e melhorias compradas entram nas cartas do baralho do humano.
-    aplicarMarcas(jogo);
+    if (!classico) aplicarMarcas(jogo);
     ligarEventos(jogo);
 
     var raiz = U.mostrarTela('mesa');

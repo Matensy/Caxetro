@@ -13,6 +13,7 @@
     wildLimit: 1,
     allowKA2: false,
     turnTimer: 0,
+    travarCuringa: true,       // curinga da rodada nao vai pra lixeira
     jokersOn: true,
     blessingsOn: true,
     vouchersOn: true,
@@ -306,9 +307,27 @@
     return true;
   };
 
+  /** Curinga da rodada e carta demais pra ir pro lixo. */
+  Game.prototype.curingaTravado = function (p, card) {
+    if (!this.cfg.travarCuringa || !card) return false;
+    if (card.forcedWild) return false;          // Coringa Supremo travaria a mao inteira
+    if (!D.isWild(card, this.round)) return false;
+    // Valvula de escape: se tudo na mao for curinga, alguma carta tem que sair.
+    var self = this;
+    return p.hand.some(function (c) {
+      return !c.forcedWild && !D.isWild(c, self.round);
+    });
+  };
+
   Game.prototype.discard = function (cardId) {
     var p = this.current();
     if (this.phase !== 'discard' || !p) return false;
+    var alvo = null;
+    for (var k = 0; k < p.hand.length; k++) if (p.hand[k].id === cardId) alvo = p.hand[k];
+    if (alvo && this.curingaTravado(p, alvo)) {
+      this.fire('descarteBloqueado', { player: p, card: alvo });
+      return false;
+    }
     var card = p.removeCard(cardId);
     if (!card) return false;
     this.round.lixeira.push(card);

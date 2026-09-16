@@ -4,7 +4,7 @@
   var U = CR.ui, D = CR.deck, R = CR.rules, S = CR.sprites;
 
   var jogo = null, boardId = 'botequim', selecionada = null, arrastando = null;
-  var refs = {};
+  var refs = {}, analise = null;
 
   function montar(raiz) {
     U.limpa(raiz);
@@ -15,12 +15,13 @@
     refs.trilhoD = U.el('div', { class: 'trilho' });
     refs.pilhas = U.el('div', { class: 'pilhas' });
     refs.acoes = U.el('div', { class: 'acoes' });
+    refs.grupos = U.el('div', { class: 'grupos', 'aria-live': 'polite' });
     refs.mao = U.el('div', { class: 'mao' });
     refs.medidor = U.el('div', { class: 'medidor' });
     refs.registro = U.el('div', { class: 'registro', 'aria-live': 'polite' });
 
     var miolo = U.el('div', { class: 'miolo' }, [refs.trilhoE, refs.pilhas, refs.trilhoD]);
-    var maoArea = U.el('div', { class: 'mao-area' }, [refs.mao, refs.medidor]);
+    var maoArea = U.el('div', { class: 'mao-area' }, [refs.grupos, refs.mao, refs.medidor]);
     var rodape = U.el('div', { class: 'rodape-mesa' }, [refs.acoes, maoArea, U.el('div')]);
     var conteudo = U.el('div', { class: 'mesa-conteudo' }, [refs.placar, miolo, rodape]);
 
@@ -229,6 +230,20 @@
         onclick: function () { acaoDescartar(selecionada.id); }
       }));
     }
+
+    var auto = CR.save.dados.opcoes.organizar !== false;
+    refs.acoes.appendChild(U.el('button', {
+      class: 'acao', type: 'button',
+      html: 'Organizar<small>' + (auto ? 'agrupando sozinho' : 'agrupar agora') + '</small>',
+      onclick: function () {
+        CR.save.dados.opcoes.organizar = true;
+        CR.save.salvar();
+        CR.organizador.organizar(eu.hand, jogo.round);
+        CR.sfx.tocar('carta');
+        desenharMao();
+        desenharAcoes();
+      }
+    }));
     if (CR.fx.mod(jogo, eu, 'mulligan', false, {}) && jogo.phase === 'discard') {
       refs.acoes.appendChild(U.el('button', {
         class: 'acao', type: 'button',
@@ -247,22 +262,81 @@
 
   /* ----------------------------------------------------------------- mao */
 
+  /** Curinga da rodada nao pode ir pra lixeira. */
+  function travada(card) {
+    if (!jogo.cfg.travarCuringa) return false;
+    if (card.forcedWild) return false;              // Coringa Supremo faria travar a mao inteira
+    return D.isWild(card, jogo.round);
+  }
+
+  function desenharGrupos() {
+    U.limpa(refs.grupos);
+    if (!analise) return;
+    if (!analise.grupos.length) {
+      refs.grupos.appendChild(U.el('span', { class: 'nada', text: 'Nenhuma combinacao ainda. Junte tres do mesmo valor ou tres do mesmo naipe em sequencia.' }));
+      return;
+    }
+    analise.grupos.forEach(function (g) {
+      var chip = U.el('div', {
+        class: 'grupo-chip', 'data-parcial': g.completo ? null : '',
+        style: '--cor-grupo:' + g.cor, title: g.rotulo
+      }, [
+        U.el('span', { class: 'letra', text: g.letra }),
+        U.el('span', { text: g.rotulo })
+      ]);
+      if (g.curinga) chip.appendChild(U.el('span', { class: 'curinga-tag', text: 'curinga' }));
+      refs.grupos.appendChild(chip);
+    });
+  }
+
   function desenharMao() {
     U.limpa(refs.mao);
     var eu = visivel();
     if (!eu) {
+      analise = null;
+      desenharGrupos();
       var p = jogo.current();
       for (var k = 0; k < (p ? p.hand.length : 9); k++) refs.mao.appendChild(versoEl());
+      U.limpa(refs.medidor);
       return;
     }
+
+    if (CR.save.dados.opcoes.organizar !== false) CR.organizador.organizar(eu.hand, jogo.round);
+    analise = CR.organizador.analisar(eu.hand, jogo.round);
+    desenharGrupos();
+
+    var grupoAnterior = null;
     eu.hand.forEach(function (card, i) {
-      var n = cartaEl(card, { classe: selecionada === card ? '' : '' });
+      var gi = analise.porCarta[card.id];
+      var g = gi === undefined ? null : analise.grupos[gi];
+      var n = cartaEl(card);
       if (selecionada === card) n.setAttribute('data-sel', '');
       if (card === jogo.lastDrawn) n.setAttribute('data-nova', '');
+      if (g) {
+        n.setAttribute('data-grupo', g.letra);
+        n.style.setProperty('--cor-grupo', g.cor);
+        if (!g.completo) n.setAttribute('data-parcial', '');
+        if (g !== grupoAnterior) {
+          n.setAttribute('data-letra', g.letra);
+          if (i > 0) n.setAttribute('data-inicio-grupo', '');
+        }
+      } else if (grupoAnterior && i > 0) n.setAttribute('data-inicio-grupo', '');
+      grupoAnterior = g;
+
+      if (travada(card)) {
+        n.setAttribute('data-travada', '');
+        n.appendChild(U.el('span', {
+          class: 'cadeado', title: 'Curinga da rodada: essa carta nao vai pra lixeira',
+          html: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#1a1405" d="M7 10V7a5 5 0 0 1 10 0v3h1.5a1.5 1.5 0 0 1 1.5 1.5v9A1.5 1.5 0 0 1 18.5 22h-13A1.5 1.5 0 0 1 4 20.5v-9A1.5 1.5 0 0 1 5.5 10zm2.5 0h5V7a2.5 2.5 0 0 0-5 0z"/></svg>'
+        }));
+      }
+
       n.setAttribute('draggable', 'true');
       n.setAttribute('tabindex', '0');
       n.setAttribute('role', 'button');
-      n.setAttribute('aria-label', D.rankLabel(card.rank) + ' de ' + D.SUITS[card.suit]);
+      n.setAttribute('aria-label', D.rankLabel(card.rank) + ' de ' + D.SUITS[card.suit] +
+        (g ? ', grupo ' + g.letra + ', ' + g.rotulo : ', sem grupo') +
+        (travada(card) ? ', curinga travado' : ''));
       n.addEventListener('click', function () { escolher(card); });
       n.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); escolher(card); }
@@ -281,30 +355,44 @@
         var moved = eu.hand.splice(arrastando, 1)[0];
         eu.hand.splice(i, 0, moved);
         arrastando = null;
+        // Mexeu na mao de proposito: para de reorganizar sozinho.
+        CR.save.dados.opcoes.organizar = false;
+        CR.save.salvar();
         CR.sfx.tocar('carta');
         desenharMao();
+        desenharAcoes();
       });
       refs.mao.appendChild(n);
     });
 
-    // Medidor: quao perto de bater
+    desenharMedidor(eu);
+  }
+
+  function desenharMedidor(eu) {
     U.limpa(refs.medidor);
-    var quente = R.handHeat(eu.hand, jogo.round);
-    var pct = Math.min(100, Math.round(quente / 3 * 100));
+    if (CR.save.dados.opcoes.dica === false) return;
+    var fechados = analise ? analise.fechados : 0;
+    var pct = Math.min(100, Math.round(fechados / 3 * 100));
     var needs = eu.hand.length === eu.handSize ? jogo.needsOf(eu) : null;
-    refs.medidor.appendChild(U.el('span', { text: 'mao' }));
+    refs.medidor.appendChild(U.el('span', { text: fechados + ' de 3' }));
     var trilha = U.el('div', { class: 'trilha' });
     trilha.appendChild(U.el('i', { style: 'width:' + pct + '%' }));
     refs.medidor.appendChild(trilha);
     refs.medidor.appendChild(U.el('span', {
-      text: needs && needs.count ? 'falta 1 carta (' + needs.count + ' servem)' :
-        quente >= 2 ? 'duas combinacoes fechadas' : quente === 1 ? 'uma combinacao fechada' : 'nenhuma combinacao ainda'
+      text: needs && needs.count ? 'falta 1 carta, e ' + needs.count + ' do baralho servem' :
+        fechados === 3 ? 'da pra bater' :
+        fechados === 2 ? 'duas combinacoes fechadas' :
+        fechados === 1 ? 'uma combinacao fechada' : 'nenhuma combinacao fechada'
     }));
   }
 
   function escolher(card) {
     var eu = visivel();
     if (!eu) return;
+    if (jogo.phase === 'discard' && travada(card)) {
+      U.aviso('O curinga da rodada fica na mao. Escolha outra carta.', 'ruim');
+      return;
+    }
     if (jogo.phase === 'discard') {
       if (selecionada === card) acaoDescartar(card.id);
       else { selecionada = card; CR.sfx.tocar('carta'); desenharMao(); desenharAcoes(); }
@@ -327,9 +415,9 @@
   }
 
   function acaoDescartar(id) {
+    if (!jogo.discard(id)) { desenhar(); return; }
     CR.sfx.tocar('descarte');
     selecionada = null;
-    jogo.discard(id);
     desenhar();
     // O descarte passa a vez: e aqui que o laco volta a rodar.
     CR.app.tocar();

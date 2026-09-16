@@ -315,6 +315,6 @@
     findMelds: findMelds, canBater9: canBater9, canBater10: canBater10, meldsOfSize: meldsOfSize,
     evaluateBater: evaluateBater, computeNeeds: computeNeeds, needsServes: needsServes,
     handHeat: handHeat, isFlushBater: isFlushBater, usedWilds: usedWilds,
-    countWilds: countWilds, subsets: subsets
+    countWilds: countWilds, subsets: subsets, completionsOf: completionsOf
   };
 })(typeof window !== 'undefined' ? (window.CR = window.CR || {}) : (global.CR = global.CR || {}));

@@ -69,7 +69,10 @@
       if (score > bestScore || best === null) { /* maximiza o que sobra */ }
       if (best === null || score > bestScore) { best = card; bestScore = score; }
     }
-    if (!best) best = p.hand[p.hand.length - 1];
+    if (!best) {
+      // Mao so de curinga (raro): joga fora a primeira que o jogo aceitar.
+      best = p.hand.filter(function (c) { return !game.curingaTravado(p, c); })[0] || p.hand[p.hand.length - 1];
+    }
     return best;
   }
 

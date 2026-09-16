@@ -69,7 +69,7 @@
       U.chapa('destino destino--hero chapa--esmalte', [
         U.el('div', {}, [
           U.el('div', { class: 'nome', text: 'Jogar' }),
-          U.el('div', { class: 'diz', text: 'Rapida, campeonato ou cachetao. Ate cinco na roda, humanos e bots misturados.' })
+          U.el('div', { class: 'diz', text: 'Classico, rapida, campeonato ou cachetao. Ate cinco na roda, humanos e bots misturados.' })
         ]),
         U.el('div', { class: 'marca', text: '2 a 5' })
       ]),
@@ -129,6 +129,7 @@
 
   function lobby(raiz) {
     if (!cfg) cfg = cfgPadrao();
+    var classico = cfg.modo === 'classico';
     U.limpa(raiz);
 
     raiz.appendChild(U.el('div', { class: 'cabeca' }, [
@@ -158,20 +159,36 @@
     var colB = U.chapa('lobby-col', [U.el('h3', { text: 'Regras da mesa' })]);
     var ops = U.el('div', { class: 'opcoes' });
     ops.appendChild(U.opcao('Modo', [
-      { rot: 'Rapida', v: 'rapida' }, { rot: 'Campeonato', v: 'campeonato' }, { rot: 'Cachetao', v: 'cachetao' }
-    ], cfg.modo, function (v) { cfg.modo = v; }));
+      { rot: 'Classico', v: 'classico' }, { rot: 'Rapida', v: 'rapida' },
+      { rot: 'Campeonato', v: 'campeonato' }, { rot: 'Cachetao', v: 'cachetao' }
+    ], cfg.modo, function (v) {
+      cfg.modo = v;
+      if (v === 'classico') { cfg.coringas = false; cfg.bencoes = false; cfg.pergaminhos = false; }
+      lobby(raiz);
+    }));
     ops.appendChild(U.opcao('Vidas', [
       { rot: '5', v: 5 }, { rot: '7', v: 7 }, { rot: '10', v: 10 }
     ], cfg.vidas, function (v) { cfg.vidas = v; }));
-    ops.appendChild(U.opcao('Coringas Especiais', [
-      { rot: 'Ligado', v: true }, { rot: 'Desligado', v: false }
-    ], cfg.coringas, function (v) { cfg.coringas = v; }));
-    ops.appendChild(U.opcao('Bencaos e Astrais', [
-      { rot: 'Ligado', v: true }, { rot: 'Desligado', v: false }
-    ], cfg.bencoes, function (v) { cfg.bencoes = v; }));
-    ops.appendChild(U.opcao('Pergaminhos', [
-      { rot: 'Ligado', v: true }, { rot: 'Desligado', v: false }
-    ], cfg.pergaminhos, function (v) { cfg.pergaminhos = v; }));
+    if (classico) {
+      var nota = U.el('div', { class: 'opcao', style: 'grid-column:1/-1' }, [
+        U.el('span', { text: 'Poderes' }),
+        U.el('div', {
+          style: 'font-size:12px;color:var(--osso-fosco);line-height:1.35',
+          text: 'Modo classico: sem coringas especiais, sem bencaos, sem pergaminhos e sem selos. So a caxeta, do jeito que se joga na mesa do bar.'
+        })
+      ]);
+      ops.appendChild(nota);
+    } else {
+      ops.appendChild(U.opcao('Coringas Especiais', [
+        { rot: 'Ligado', v: true }, { rot: 'Desligado', v: false }
+      ], cfg.coringas, function (v) { cfg.coringas = v; }));
+      ops.appendChild(U.opcao('Bencaos e Astrais', [
+        { rot: 'Ligado', v: true }, { rot: 'Desligado', v: false }
+      ], cfg.bencoes, function (v) { cfg.bencoes = v; }));
+      ops.appendChild(U.opcao('Pergaminhos', [
+        { rot: 'Ligado', v: true }, { rot: 'Desligado', v: false }
+      ], cfg.pergaminhos, function (v) { cfg.pergaminhos = v; }));
+    }
     ops.appendChild(U.opcao('Curinga por combinacao', [
       { rot: '1', v: 1 }, { rot: '2', v: 2 }
     ], cfg.curingasPorCombo, function (v) { cfg.curingasPorCombo = v; }));
@@ -183,13 +200,17 @@
     ], cfg.timer, function (v) { cfg.timer = v; }));
     colB.appendChild(ops);
 
-    colB.appendChild(U.el('h3', { text: 'Seu equipamento', style: 'margin-top:14px' }));
-    colB.appendChild(resumoEquipamento());
+    if (!classico) {
+      colB.appendChild(U.el('h3', { text: 'Seu equipamento', style: 'margin-top:14px' }));
+      colB.appendChild(resumoEquipamento());
+    }
 
     raiz.appendChild(U.el('div', { class: 'lobby-grade' }, [colA, colB]));
 
     var pe = U.el('div', { class: 'lobby-pe' }, [
-      U.el('div', { class: 'dica', text: 'Tabuleiro ' + CR.themes.get(CR.save.dados.board).name + ', deck ' + CR.store.deckAtual().nome + '. Troca na lojinha.' }),
+      U.el('div', { class: 'dica', text: classico
+        ? 'Tabuleiro ' + CR.themes.get(CR.save.dados.board).name + '. No classico o deck e o padrao, sem modificador.'
+        : 'Tabuleiro ' + CR.themes.get(CR.save.dados.board).name + ', deck ' + CR.store.deckAtual().nome + '. Troca na lojinha.' }),
       U.el('button', { class: 'botao-grande', type: 'button', text: 'Comecar', onclick: function () { CR.app.comecarPartida(cfg); } })
     ]);
     raiz.appendChild(pe);
@@ -235,8 +256,15 @@
 
   function resumoEquipamento() {
     var s = CR.save.dados;
-    var box = U.el('div', { style: 'display:flex;gap:6px;flex-wrap:wrap' });
-    if (!s.loadout.length) box.appendChild(U.el('span', { class: 'dica', text: 'Nenhum coringa equipado. Passa na lojinha.' }));
+    var box = U.el('div', { style: 'display:flex;gap:8px;flex-wrap:wrap;align-items:center' });
+    if (!s.loadout.length) {
+      box.appendChild(U.el('span', { class: 'dica', text: 'Sem coringa equipado.' }));
+      box.appendChild(U.el('button', {
+        class: 'comprar', type: 'button', text: 'Pegar um baralho pronto',
+        onclick: function () { abaAtual = 'prontos'; CR.sfx.tocar('botao'); CR.app.ir('loja'); }
+      }));
+      return box;
+    }
     s.loadout.forEach(function (id) {
       var d = CR.fx.get('joker', id);
       if (!d) return;
@@ -247,14 +275,15 @@
 
   /* ============================================================= lojinha */
 
-  var abaAtual = 'coringas', filtroAtual = 'todos', selDeck = null;
+  var abaAtual = 'prontos', filtroAtual = 'todos', selDeck = null;
 
   function loja(raiz) {
     U.limpa(raiz);
     var s = CR.save.dados;
 
     var abas = U.el('div', { class: 'abas' });
-    [['coringas', 'Coringas'], ['deck', 'Deck Builder'], ['pergaminhos', 'Pergaminhos'], ['cosmeticos', 'Tabuleiros e visual']]
+    [['prontos', 'Baralhos prontos'], ['coringas', 'Coringas'], ['deck', 'Deck Builder'],
+     ['pergaminhos', 'Pergaminhos'], ['cosmeticos', 'Tabuleiros e visual']]
       .forEach(function (a) {
         abas.appendChild(U.el('button', {
           class: 'aba', type: 'button', role: 'tab', text: a[1],
@@ -294,13 +323,15 @@
     var vitrine = U.el('div', { class: 'vitrine', 'data-col': abaAtual === 'cosmeticos' ? '4' : '5' });
     raiz.appendChild(vitrine);
 
-    if (abaAtual === 'coringas') vitrineCoringas(vitrine, raiz);
+    if (abaAtual === 'prontos') vitrineProntos(vitrine, raiz);
+    else if (abaAtual === 'coringas') vitrineCoringas(vitrine, raiz);
     else if (abaAtual === 'deck') vitrineDeck(vitrine, raiz);
     else if (abaAtual === 'pergaminhos') vitrinePergaminhos(vitrine, raiz);
     else vitrineCosmeticos(vitrine, raiz);
   }
 
   function descricaoAba() {
+    if (abaAtual === 'prontos') return 'Combinacoes ja montadas. Escolha uma, aperte usar e va jogar.';
     if (abaAtual === 'deck') return 'Aplique selos e melhorias em cartas do baralho, e escolha o deck da partida.';
     if (abaAtual === 'pergaminhos') return 'Pergaminhos valem a sessao inteira. Bencaos e Astrais voce leva pra partida.';
     return 'Tabuleiro muda feltro, verso, naipes e a arte das cartas especiais.';
@@ -314,6 +345,72 @@
     if (def.drawback) n.appendChild(U.el('div', { class: 'drawback', text: 'Contrapartida: ' + def.drawback }));
     n.appendChild(extras);
     return n;
+  }
+
+  /* Baralhos prontos: o caminho de entrada pra quem nao conhece os 60 coringas. */
+  function vitrineProntos(vitrine, raiz) {
+    var s = CR.save.dados;
+    vitrine.setAttribute('data-col', '3');
+
+    CR.prontos.lista.forEach(function (pr) {
+      var falta = CR.prontos.faltando(pr);
+      var temTudo = falta.length === 0;
+      var usando = CR.prontos.emUso(pr);
+      var custo = CR.prontos.preco(pr);
+
+      var pecas = U.el('div', { class: 'pecas' });
+      pr.jokers.forEach(function (id) {
+        var d = CR.fx.get('joker', id);
+        if (!d) return;
+        var tem = s.jokers.indexOf(id) !== -1;
+        pecas.appendChild(U.el('div', {
+          class: 'peca', 'data-tem': tem ? '' : null, title: d.name + ': ' + d.text,
+          html: S.emblema(d, s.board) + '<span>' + S.esc(d.name) + '</span>'
+        }));
+      });
+
+      var extras = [];
+      pr.vouchers.forEach(function (id) {
+        var v = CR.fx.get('voucher', id); if (v) extras.push('pergaminho ' + v.name);
+      });
+      Object.keys(pr.astral).forEach(function (id) {
+        var a = CR.fx.get('astral', id); if (a) extras.push('astral ' + a.name);
+      });
+      pr.blessings.forEach(function (id) {
+        var b = CR.fx.get('blessing', id); if (b) extras.push('bencao ' + b.name);
+      });
+      var dk = CR.store.DECKS.filter(function (d) { return d.id === pr.deck; })[0];
+      if (dk && dk.id !== 'padrao') extras.push('deck ' + dk.nome);
+
+      var acao;
+      if (usando) acao = U.el('span', { class: 'tem', text: 'em uso' });
+      else acao = U.el('button', {
+        class: temTudo ? 'equipar' : 'comprar', type: 'button',
+        text: temTudo ? 'usar' : custo === 0 ? 'pegar de graca' : 'levar tudo',
+        disabled: !temTudo && custo > 0 && s.fichas < custo,
+        onclick: function () {
+          if (!CR.prontos.adotar(pr)) return U.aviso('Fichas de menos pra esse baralho.', 'ruim');
+          CR.sfx.tocar('ficha');
+          U.aviso(pr.nome + ' equipado. Pode ir jogar.', 'bom');
+          loja(raiz);
+        }
+      });
+
+      var n = U.chapa('item pronto-item' + (usando ? ' rar-lendario' : ''), [
+        U.el('h4', { text: pr.nome }),
+        U.el('div', { class: 'resumo', text: pr.resumo }),
+        pecas,
+        extras.length ? U.el('div', { class: 'extras', text: 'Vem junto: ' + extras.join(', ') + '.' }) : null,
+        U.el('div', { class: 'como', text: pr.comoJogar }),
+        U.el('div', { class: 'pe' }, [
+          temTudo ? U.el('span', { class: 'tem', text: usando ? '' : 'tudo seu' })
+                  : U.el('span', { class: 'preco', text: custo === 0 ? 'gratis' : U.fichas(custo) }),
+          acao
+        ])
+      ]);
+      if (usando) n.setAttribute('data-meu', '');
+      vitrine.appendChild(n);
+    });
   }
 
   function vitrineCoringas(vitrine, raiz) {

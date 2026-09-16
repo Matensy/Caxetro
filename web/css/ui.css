@@ -263,3 +263,22 @@
 }
 .aviso[data-t="ruim"] { border-color: rgba(200,50,47,.7); }
 .aviso[data-t="bom"] { border-color: rgba(46,125,107,.8); }
+
+/* -------------------------------------------------- baralhos prontos
+ * A porta de entrada da lojinha: combinacao montada com o resumo do que faz.
+ */
+.pronto-item h4 { font-family: var(--display); font-size: 19px; color: var(--osso); }
+.pronto-item .resumo { font-size: 12.5px; color: var(--osso); line-height: 1.35; }
+.pronto-item .pecas { display: flex; gap: 6px; }
+.pronto-item .peca {
+  flex: 1; display: grid; gap: 3px; justify-items: center; text-align: center;
+  opacity: .55; filter: grayscale(.6);
+}
+.pronto-item .peca[data-tem] { opacity: 1; filter: none; }
+.pronto-item .peca svg { width: 100%; height: auto; border-radius: 5px; }
+.pronto-item .peca span { font-size: 9.5px; color: var(--osso-fosco); line-height: 1.15; }
+.pronto-item .extras { font-size: 11px; color: var(--verdete); }
+.pronto-item .como {
+  font-size: 11px; color: var(--osso-fosco); line-height: 1.35; flex: 1;
+  border-left: 2px solid rgba(232,197,71,.4); padding-left: 8px;
+}
