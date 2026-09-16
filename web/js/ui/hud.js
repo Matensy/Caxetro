@@ -8,6 +8,10 @@
 
   function montar(raiz) {
     U.limpa(raiz);
+    // Mesa nova: solta a anterior, senao ligar() nao roda na segunda partida.
+    jogo = null;
+    analise = null;
+    selecionada = null;
     refs.feltro = U.el('div', { class: 'mesa-feltro' }, [U.el('div', { class: 'borda' })]);
     refs.canvas = U.el('canvas', { id: 'fx-canvas', width: 960, height: 540, 'aria-hidden': 'true' });
     refs.placar = U.el('div', { class: 'placar' });

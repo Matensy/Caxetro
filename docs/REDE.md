@@ -61,6 +61,10 @@ código no outro, coloca um bot na mesa e joga até a partida acabar. Ele falha 
 `node tools/test-lan-queda.js` fecha o navegador de um dos jogadores no meio da partida e
 verifica que a cadeira dele vira bot e a mesa continua andando.
 
+`node tools/test-lan-segunda-sala.js` sai da sala e abre outra na mesma aba — foi assim
+que apareceu um bug em que sair da sala desligava os ouvintes e a segunda partida nunca
+recebia estado.
+
 ## Quando alguém cai
 
 Celular travou, wifi caiu, alguém fechou o navegador: o dono percebe pela lista da sala,

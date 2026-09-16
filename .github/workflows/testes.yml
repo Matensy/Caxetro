@@ -63,3 +63,5 @@ jobs:
         run: node tools/test-lan.js
       - name: Jogador que sai no meio da partida
         run: node tools/test-lan-queda.js
+      - name: Sair de uma sala e abrir outra
+        run: node tools/test-lan-segunda-sala.js

@@ -94,7 +94,8 @@
     desligar();
     sessao = null;
     salaAtual = [];
-    ouvintes = {};
+    // Os ouvintes ficam: quem escuta ja checa em que modo esta, e limpar aqui
+    // deixava a proxima sala sem ninguem ouvindo.
     if (!s) return Promise.resolve();
     return pedir('/api/sala/sair', { codigo: s.codigo, peer: s.peer, token: s.token }).catch(function () {});
   }

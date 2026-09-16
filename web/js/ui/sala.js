@@ -265,7 +265,7 @@
         rot: dono ? 'Fechar' : 'Sair', tipo: 'sim', acao: function () {
           CR.online.encerrar();
           CR.lan.sair();
-          botsDaSala = []; equipamentos = {}; jaLigado = false;
+          botsDaSala = []; equipamentos = {};
           CR.app.ir('menu');
         }
       }]);

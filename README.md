@@ -174,6 +174,7 @@ node tools/test-sim.js 60   # 60 partidas só de bots, procurando travamento
 node tools/test-ui.js       # joga uma partida inteira pelo DOM, no Chromium
 node tools/test-lan.js     # dois navegadores numa sala: joga e confere que a mão não vaza
 node tools/test-lan-queda.js  # um jogador some no meio: a cadeira vira bot e a mesa segue
+node tools/test-lan-segunda-sala.js  # sai de uma sala e abre outra na mesma sessão
 node tools/screenshots.js   # regera as fotos de docs/imagens
 ```
 
