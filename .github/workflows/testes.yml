@@ -30,3 +30,34 @@ jobs:
         run: |
           go vet ./...
           go build ./...
+
+  navegador:
+    runs-on: ubuntu-latest
+    env:
+      # Em CI o playwright vem do node_modules; na maquina de dev, do global.
+      PLAYWRIGHT_MODULE: ${{ github.workspace }}/node_modules/playwright
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - name: Instalar o Chromium
+        run: |
+          npm init -y >/dev/null
+          npm i -D playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Subir o servidor
+        run: |
+          cd server && go build -o /tmp/caxeta-server . && cd ..
+          /tmp/caxeta-server -addr :8080 -web web -save /tmp/save.json &
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8080/api/saude && break
+            sleep 1
+          done
+      - name: Partida inteira pelo DOM
+        run: node tools/test-ui.js
+      - name: Dois navegadores numa sala
+        run: node tools/test-lan.js

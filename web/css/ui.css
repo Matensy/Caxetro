@@ -282,3 +282,72 @@
   font-size: 11px; color: var(--osso-fosco); line-height: 1.35; flex: 1;
   border-left: 2px solid rgba(232,197,71,.4); padding-left: 8px;
 }
+
+/* ================================================= sala na rede local */
+
+#tela-sala[data-ativa] { padding: 18px 26px; display: grid; grid-template-rows: auto 1fr auto; gap: 12px; }
+.sala-grade { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; min-height: 0; align-items: stretch; }
+.sala-col { display: grid; align-content: start; gap: 10px; padding: 14px; min-height: 0; overflow-y: auto; }
+.sala-col h3 { font-family: var(--display); font-size: 17px; color: var(--latao); }
+.sala-col p { font-size: 12.5px; color: var(--osso-fosco); line-height: 1.4; }
+
+.sala-cartao { padding: 16px; display: grid; gap: 10px; align-content: start; min-height: 0; overflow-y: auto; }
+.sala-cartao h3 { font-family: var(--display); font-size: 21px; color: var(--osso); }
+.sala-cartao .botao-grande { justify-self: start; padding: 10px 24px; font-size: 19px; }
+
+.campo { display: grid; gap: 4px; }
+.campo span { font-size: 11.5px; color: var(--osso-fosco); }
+.campo input {
+  background: rgba(0,0,0,.32); border: 1px solid rgba(242,230,206,.22);
+  color: var(--osso); font: inherit; font-size: 14px; padding: 8px 10px; border-radius: 2px;
+}
+.campo input:focus { outline: none; border-color: var(--latao); }
+
+.codigo-campo {
+  font-family: var(--display); font-size: 34px; letter-spacing: .16em;
+  text-align: center; text-transform: uppercase; padding: 6px 10px !important;
+}
+
+.sala-codigo { padding: 14px 18px; text-align: center; }
+.sala-codigo .rot { font-size: 11.5px; color: var(--osso-fosco); }
+.sala-codigo .codigo {
+  font-family: var(--display); font-size: 62px; line-height: 1.05;
+  color: var(--latao); letter-spacing: .12em;
+  text-shadow: 0 3px 0 rgba(0,0,0,.45);
+}
+
+.como-entrar { display: grid; gap: 9px; }
+.como-entrar .passo-txt { font-size: 12.5px; color: var(--osso-fosco); line-height: 1.4; }
+/* Entrar na sala e uma sequencia de verdade, entao os numeros valem. */
+.receita { display: grid; gap: 9px; margin-top: 2px; }
+.receita li { display: grid; grid-template-columns: 24px 1fr; gap: 9px; align-items: start; list-style: none; }
+.receita b {
+  font-family: var(--display); font-size: 17px; color: var(--rail-ink); line-height: 1.05;
+  text-align: center;
+}
+.receita span { font-size: 12.5px; color: var(--osso-fosco); line-height: 1.35; }
+.receita span em { font-style: normal; color: var(--osso); font-weight: 600; }
+.enderecos { display: grid; gap: 4px; }
+.enderecos code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 14px;
+  background: rgba(0,0,0,.36); border: 1px solid rgba(232,197,71,.3);
+  padding: 7px 10px; border-radius: 2px; color: var(--latao);
+  user-select: all; word-break: break-all;
+}
+
+.sala-jogadores { display: grid; gap: 6px; }
+.sala-jog {
+  display: grid; grid-template-columns: 22px 1fr auto auto; gap: 8px; align-items: center;
+  padding: 7px 9px; background: rgba(0,0,0,.26); border-radius: 2px;
+  border-left: 3px solid var(--verdete); font-size: 13px;
+}
+.sala-jog.bot { border-left-color: var(--rail); }
+.sala-jog.eu { border-left-color: var(--latao); }
+.sala-jog .n { font-family: var(--display); color: var(--osso-fosco); font-size: 14px; }
+.sala-jog .nome { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sala-jog .papel { font-size: 11px; color: var(--osso-fosco); }
+.sala-jog .troca { border: 1px solid rgba(242,230,206,.22); border-radius: 2px; padding: 3px 7px; }
+.sala-jog .troca:hover { border-color: var(--latao); color: var(--latao); }
+
+.sala-espera-txt { font-size: 13px; color: var(--osso-fosco); margin-top: 8px; }
+.sala-rodape { font-size: 11.5px; color: #6f7f76; }

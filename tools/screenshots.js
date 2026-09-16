@@ -1,5 +1,5 @@
 /* Percorre o jogo no Chromium e guarda as fotos das telas em docs/imagens. */
-const { chromium } = require('/opt/node22/lib/node_modules/playwright');
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE || '/opt/node22/lib/node_modules/playwright');
 const path = require('path');
 const fs = require('fs');
 
@@ -31,17 +31,21 @@ async function shot(page, nome) {
   // Lojinha: as quatro abas
   await page.evaluate(() => CR.save.dados.fichas = 99999);
   await page.evaluate(() => CR.app.ir('loja'));
-  await shot(page, '03-loja-coringas');
-
-  await page.evaluate(() => { CR.ui.$$('.aba')[3].click(); });
-  await page.waitForTimeout(400);
-  await shot(page, '04-loja-tabuleiros');
+  await shot(page, '14-loja-prontos');
 
   await page.evaluate(() => { CR.ui.$$('.aba')[1].click(); });
   await page.waitForTimeout(400);
-  await shot(page, '05-loja-deck');
+  await shot(page, '03-loja-coringas');
+
+  await page.evaluate(() => { CR.ui.$$('.aba')[4].click(); });
+  await page.waitForTimeout(400);
+  await shot(page, '04-loja-tabuleiros');
 
   await page.evaluate(() => { CR.ui.$$('.aba')[2].click(); });
+  await page.waitForTimeout(400);
+  await shot(page, '05-loja-deck');
+
+  await page.evaluate(() => { CR.ui.$$('.aba')[3].click(); });
   await page.waitForTimeout(400);
   await shot(page, '06-loja-pergaminhos');
 
@@ -51,9 +55,23 @@ async function shot(page, nome) {
   await page.evaluate(() => CR.app.ir('ajuda'));
   await shot(page, '08-como-joga');
 
-  // Lobby
+  // Lobby, e o modo classico
   await page.evaluate(() => CR.app.ir('lobby'));
   await shot(page, '09-lobby');
+  await page.evaluate(() => {
+    [...document.querySelectorAll('.pilha button')].find(b => b.textContent === 'Classico').click();
+  });
+  await page.waitForTimeout(400);
+  await shot(page, '15-lobby-classico');
+  await page.evaluate(() => {
+    [...document.querySelectorAll('.pilha button')].find(b => b.textContent === 'Campeonato').click();
+  });
+  await page.waitForTimeout(300);
+
+  // Sala na rede local
+  await page.evaluate(() => CR.app.ir('sala'));
+  await page.waitForTimeout(400);
+  await shot(page, '16-sala-entrada');
 
   // Mesa, tabuleiro botequim
   await page.evaluate(() => {
@@ -71,6 +89,14 @@ async function shot(page, nome) {
   });
   await page.waitForTimeout(900);
   await shot(page, '10-mesa-botequim');
+
+  // Organizador de mao, ja com uma carta comprada
+  await page.evaluate(() => {
+    const j = CR.app.jogo;
+    j.turnIdx = 0; j.beginTurn(); j.drawFrom('maco'); CR.hud.desenhar();
+  });
+  await page.waitForTimeout(500);
+  await shot(page, '17-organizador');
 
   // Mesa com outros tabuleiros
   for (const board of ['halloween', 'floresta', 'natal', 'noir', 'neon', 'junino', 'cosmos', 'mar', 'cangaco', 'azulejo', 'dourado']) {

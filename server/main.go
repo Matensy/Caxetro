@@ -107,6 +107,7 @@ func main() {
 	store := &saveStore{path: *saveEm}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/save", store.handle)
+	novoRegistro().rotas(mux)
 	mux.HandleFunc("/api/saude", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.Write([]byte(`{"ok":true,"jogo":"Caxeta Royale"}`))
@@ -119,6 +120,9 @@ func main() {
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 	log.Printf("Caxeta Royale servindo %q em http://localhost%s", dir, *addr)
+	for _, e := range enderecosDaRede(&http.Request{Host: "x" + *addr}) {
+		log.Printf("  no mesmo wifi, os amigos abrem %s", e)
+	}
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatal(err)
 	}

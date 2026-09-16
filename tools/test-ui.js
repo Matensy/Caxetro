@@ -1,5 +1,5 @@
 /* Joga a partida de verdade pelo DOM: clica, descarta, espera bot, chega ao fim. */
-const { chromium } = require('/opt/node22/lib/node_modules/playwright');
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE || '/opt/node22/lib/node_modules/playwright');
 
 (async () => {
   const browser = await chromium.launch();
@@ -30,6 +30,7 @@ const { chromium } = require('/opt/node22/lib/node_modules/playwright');
         cfg.vidas = 5;
       }
       if (c === 'sempoderes') { cfg.coringas = false; cfg.bencoes = false; cfg.pergaminhos = false; cfg.vidas = 5; }
+      if (c === 'classico') { cfg.modo = 'classico'; cfg.vidas = 5; cfg.coringas = false; cfg.bencoes = false; cfg.pergaminhos = false; }
     }, cenario);
   }
   await page.click('.lobby-pe .botao-grande');

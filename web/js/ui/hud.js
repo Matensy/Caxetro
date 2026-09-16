@@ -45,12 +45,33 @@
 
   /* ------------------------------------------------------ quem esta vendo */
 
-  /** O humano da vez; quando so tem bot jogando, mostra a mesa sem mao aberta. */
+  /**
+   * Quem esta olhando pra tela. No hot-seat e o humano da vez; na rede e
+   * sempre o dono deste aparelho, mesmo quando a vez e de outro.
+   */
   function visivel() {
     if (!jogo) return null;
+    if (jogo.online) {
+      var eu = jogo.players[CR.online.meuIdx];
+      return eu && eu.alive ? eu : null;
+    }
     var p = jogo.current();
     if (p && !p.isBot && p.alive) return p;
     return null;
+  }
+
+  /** Como o placar chama cada um: "voce" e so quem esta neste aparelho. */
+  function papelDe(p) {
+    if (p.isBot) return p.botLevel;
+    if (jogo.online) return p.idx === CR.online.meuIdx ? 'voce' : 'na rede';
+    return 'voce';
+  }
+
+  /** Da pra agir agora? Na rede, so na propria vez. */
+  function minhaVez() {
+    if (!jogo) return false;
+    if (!jogo.online) return true;
+    return jogo.turnIdx === CR.online.meuIdx;
   }
 
   function classicos() { return CR.save.dados.opcoes.naipesClassicos; }
@@ -95,7 +116,7 @@
       }, [
         U.el('div', { class: 'linha1' }, [
           U.el('span', { class: 'nome', text: p.name }),
-          U.el('span', { class: 'tipo', text: p.isBot ? p.botLevel : 'voce' })
+          U.el('span', { class: 'tipo', text: papelDe(p) })
         ]),
         vidas, selos,
         mostrarCont ? U.el('div', { class: 'cartas-cont', text: p.hand.length + ' cartas' }) : null
@@ -109,7 +130,7 @@
   function desenharPilhas() {
     U.limpa(refs.pilhas);
     var eu = visivel();
-    var podeComprar = eu && jogo.phase === 'buy';
+    var podeComprar = eu && jogo.phase === 'buy' && minhaVez();
     var r = jogo.round;
 
     // Maco
@@ -209,6 +230,15 @@
       refs.acoes.appendChild(U.el('div', { class: 'acao', text: 'Bot pensando...', disabled: true }));
       return;
     }
+    if (!minhaVez()) {
+      var davez = jogo.current();
+      refs.acoes.appendChild(U.el('div', {
+        class: 'acao', disabled: true,
+        html: 'Vez de ' + S.esc(davez ? davez.name : '?') + '<small>voce joga na sua vez</small>'
+      }));
+      refs.acoes.appendChild(botaoOrganizar(eu));
+      return;
+    }
     var podeBater = !!R.findMelds(eu.hand, jogo.round);
     refs.acoes.appendChild(U.el('button', {
       class: 'acao acao--bater', type: 'button', disabled: !podeBater,
@@ -231,19 +261,7 @@
       }));
     }
 
-    var auto = CR.save.dados.opcoes.organizar !== false;
-    refs.acoes.appendChild(U.el('button', {
-      class: 'acao', type: 'button',
-      html: 'Organizar<small>' + (auto ? 'agrupando sozinho' : 'agrupar agora') + '</small>',
-      onclick: function () {
-        CR.save.dados.opcoes.organizar = true;
-        CR.save.salvar();
-        CR.organizador.organizar(eu.hand, jogo.round);
-        CR.sfx.tocar('carta');
-        desenharMao();
-        desenharAcoes();
-      }
-    }));
+    refs.acoes.appendChild(botaoOrganizar(eu));
     if (CR.fx.mod(jogo, eu, 'mulligan', false, {}) && jogo.phase === 'discard') {
       refs.acoes.appendChild(U.el('button', {
         class: 'acao', type: 'button',
@@ -258,6 +276,22 @@
         onclick: function () { if (jogo.stashCard(eu.idx, selecionada.id)) { selecionada = null; desenhar(); } }
       }));
     }
+  }
+
+  function botaoOrganizar(eu) {
+    var auto = CR.save.dados.opcoes.organizar !== false;
+    return U.el('button', {
+      class: 'acao', type: 'button',
+      html: 'Organizar<small>' + (auto ? 'agrupando sozinho' : 'agrupar agora') + '</small>',
+      onclick: function () {
+        CR.save.dados.opcoes.organizar = true;
+        CR.save.salvar();
+        CR.organizador.organizar(eu.hand, jogo.round);
+        CR.sfx.tocar('carta');
+        desenharMao();
+        desenharAcoes();
+      }
+    });
   }
 
   /* ----------------------------------------------------------------- mao */
@@ -389,6 +423,7 @@
   function escolher(card) {
     var eu = visivel();
     if (!eu) return;
+    if (!minhaVez()) { U.aviso('Ainda nao e a sua vez.', 'ruim'); return; }
     if (jogo.phase === 'discard' && travada(card)) {
       U.aviso('O curinga da rodada fica na mao. Escolha outra carta.', 'ruim');
       return;
@@ -415,12 +450,16 @@
   }
 
   function acaoDescartar(id) {
-    if (!jogo.discard(id)) { desenhar(); return; }
+    if (!jogo.discard(id)) {
+      U.aviso('Essa carta nao pode ir pra lixeira agora.', 'ruim');
+      desenhar();
+      return;
+    }
     CR.sfx.tocar('descarte');
     selecionada = null;
     desenhar();
     // O descarte passa a vez: e aqui que o laco volta a rodar.
-    CR.app.tocar();
+    if (!jogo.online || CR.online.modo === 'dono') CR.app.tocar();
   }
 
   function acaoNaBoa(eu) {
@@ -451,19 +490,19 @@
   function usarBencao(eu, id, def) {
     if (def.target === 'card' || def.target === 'card+suit' || def.target === 'twoCards') {
       escolherCartas(def, eu, function (sel) {
-        if (CR.blessings.apply(jogo, eu, id, sel)) { CR.sfx.tocar('poder'); CR.store.progredir('bencoesUsadas', 1); desenhar(); }
+        if (jogo.usarBencao(eu, id, sel)) { CR.sfx.tocar('poder'); CR.store.progredir('bencoesUsadas', 1); desenhar(); }
       });
       return;
     }
     if (def.target === 'rival') {
       escolherRival(def, eu, function (r) {
-        if (CR.blessings.apply(jogo, eu, id, { rival: r })) { CR.sfx.tocar('poder'); CR.store.progredir('bencoesUsadas', 1); desenhar(); }
+        if (jogo.usarBencao(eu, id, { rival: r })) { CR.sfx.tocar('poder'); CR.store.progredir('bencoesUsadas', 1); desenhar(); }
       });
       return;
     }
     U.sobrepor(def.name, def.text, [{ rot: 'Agora nao' }, {
       rot: 'Usar', tipo: 'sim', acao: function () {
-        if (CR.blessings.apply(jogo, eu, id, {})) { CR.sfx.tocar('poder'); CR.store.progredir('bencoesUsadas', 1); desenhar(); }
+        if (jogo.usarBencao(eu, id, {})) { CR.sfx.tocar('poder'); CR.store.progredir('bencoesUsadas', 1); desenhar(); }
         else U.aviso('Nao deu pra usar agora.', 'ruim');
       }
     }]);
@@ -545,6 +584,7 @@
 
   CR.hud = {
     montar: montar, ligar: ligar, desenhar: desenhar, cartaEl: cartaEl, versoEl: versoEl,
+    ativa: function () { return !!jogo; }, minhaVez: minhaVez,
     get refs() { return refs; },
     set selecionada(v) { selecionada = v; },
     temaDaCarta: temaDaCarta

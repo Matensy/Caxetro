@@ -73,6 +73,7 @@
         ]),
         U.el('div', { class: 'marca', text: '2 a 5' })
       ]),
+      linkDestino('Jogar no wifi', 'Abra uma mesa e chame quem esta na mesma rede pelo codigo', 'ate 5', 'sala'),
       linkDestino('Lojinha', 'Coringas, selos, pergaminhos e tabuleiro novo', s.jokers.length + ' coringas seus', 'loja'),
       linkDestino('Desafios do dia', 'Tres tarefas, fichas na conta', feitos + ' de 3 feitos', 'desafios'),
       linkDestino('Como se joga', 'Regra da caxeta e os poderes, do zero', null, 'ajuda'),

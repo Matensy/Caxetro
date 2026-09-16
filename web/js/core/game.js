@@ -711,5 +711,10 @@
     return CR.blessings.apply(this, p, id, sel);
   };
 
+  /** Mesmo nome que o Espelho usa, pra mesa nao precisar saber onde esta. */
+  Game.prototype.usarBencao = function (p, id, sel) {
+    return CR.blessings.apply(this, p, id, sel);
+  };
+
   CR.Game = Game;
 })(typeof window !== 'undefined' ? (window.CR = window.CR || {}) : (global.CR = global.CR || {}));

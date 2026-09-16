@@ -24,6 +24,7 @@
     if (!raiz) return;
     if (tela === 'menu') { raiz.className = 'tela'; CR.screens.menu(raiz); }
     else if (tela === 'lobby') { raiz.className = 'tela'; CR.screens.lobby(raiz); }
+    else if (tela === 'sala') { raiz.className = 'tela'; CR.salaTela.sala(raiz); }
     else if (tela === 'loja') { raiz.className = 'tela'; CR.screens.loja(raiz); }
     else if (tela === 'desafios') { raiz.className = 'tela texto-col'; CR.screens.desafios(raiz); }
     else if (tela === 'ajuda') CR.screens.ajuda(raiz);
@@ -35,46 +36,63 @@
 
   /* ---------------------------------------------------- iniciar partida */
 
-  function comecarPartida(cfg) {
+  /** Equipamento que este aparelho leva pra mesa. */
+  function meuEquipamento(classico) {
     var s = CR.save.dados;
-    cfgAtual = cfg;
-    var classico = cfg.modo === 'classico';
-    if (classico) { cfg.coringas = false; cfg.bencoes = false; cfg.pergaminhos = false; }
-    // No classico o baralho e o baralho: sem modificador de deck, sem selo.
-    var deck = classico ? CR.store.DECKS[0] : CR.store.deckAtual();
+    if (classico) return { jokers: [], blessings: [], vouchers: [], astral: {}, deck: 'padrao' };
+    return {
+      jokers: s.loadout.slice(),
+      blessings: s.blessings.slice(0, 2),
+      vouchers: s.vouchers.slice(),
+      astral: Object.assign({}, s.astral),
+      deck: s.deck
+    };
+  }
 
-    var assentos = cfg.cadeiras.map(function (c, i) {
-      var meu = !c.bot && i === primeiroHumano(cfg);
+  /**
+   * Monta o CR.Game a partir da configuracao da mesa e da lista de jogadores.
+   * Serve tanto pro jogo local quanto pro dono da sala na rede.
+   */
+  function criarPartida(cfg, jogadores, board) {
+    var classico = cfg.modo === 'classico';
+    var deckId = (jogadores[0] && jogadores[0].equipamento && jogadores[0].equipamento.deck) || 'padrao';
+    var deck = classico ? CR.store.DECKS[0]
+      : (CR.store.DECKS.filter(function (d) { return d.id === deckId; })[0] || CR.store.DECKS[0]);
+
+    var assentos = jogadores.map(function (j, i) {
+      var eq = classico ? null : j.equipamento;
       return {
-        name: c.nome || (c.bot ? 'Bot ' + (i + 1) : 'Jogador ' + (i + 1)),
-        isBot: c.bot, botLevel: c.nivel,
-        jokers: meu ? s.loadout.slice() : (c.bot ? loadoutDeBot(c.nivel, i) : []),
-        blessings: meu ? s.blessings.slice(0, 2) : [],
-        vouchers: meu ? s.vouchers.slice() : [],
-        astral: meu ? Object.assign({}, s.astral) : {},
-        deckSkin: s.board
+        name: j.nome || (j.bot ? 'Bot ' + (i + 1) : 'Jogador ' + (i + 1)),
+        isBot: !!j.bot, botLevel: j.nivel,
+        jokers: eq ? (eq.jokers || []).slice() : (j.bot && !classico ? loadoutDeBot(j.nivel, i) : []),
+        blessings: eq ? (eq.blessings || []).slice() : [],
+        vouchers: eq ? (eq.vouchers || []).slice() : [],
+        astral: eq ? Object.assign({}, eq.astral || {}) : {},
+        deckSkin: board
       };
     });
 
-    if (deck.mods.lendarioGratis) {
-      var lend = CR.fx.all('joker').filter(function (j) { return j.rarity === 'lendario'; });
-      assentos[primeiroHumano(cfg)].jokers.push(lend[Math.floor(Math.random() * lend.length)].id);
-    }
-    if (deck.mods.bencaoGratis) {
-      var bs = CR.fx.all('blessing');
-      assentos[primeiroHumano(cfg)].blessings.push(bs[Math.floor(Math.random() * bs.length)].id);
-    }
-    if (deck.mods.astralGratis) {
-      var as = CR.fx.all('astral');
-      var alvo = assentos[primeiroHumano(cfg)];
-      alvo.astral[as[Math.floor(Math.random() * as.length)].id] = 1;
-    }
-    if (deck.mods.voucherGratis) {
-      var vs = CR.fx.all('voucher');
-      assentos[primeiroHumano(cfg)].vouchers.push(vs[Math.floor(Math.random() * vs.length)].id);
+    // Bonus de deck valem pra quem escolheu o deck: o dono da mesa.
+    if (!classico && assentos.length) {
+      if (deck.mods.lendarioGratis) {
+        var lend = CR.fx.all('joker').filter(function (j) { return j.rarity === 'lendario'; });
+        assentos[0].jokers.push(lend[Math.floor(Math.random() * lend.length)].id);
+      }
+      if (deck.mods.bencaoGratis) {
+        var bs = CR.fx.all('blessing');
+        assentos[0].blessings.push(bs[Math.floor(Math.random() * bs.length)].id);
+      }
+      if (deck.mods.astralGratis) {
+        var as = CR.fx.all('astral');
+        assentos[0].astral[as[Math.floor(Math.random() * as.length)].id] = 1;
+      }
+      if (deck.mods.voucherGratis) {
+        var vs = CR.fx.all('voucher');
+        assentos[0].vouchers.push(vs[Math.floor(Math.random() * vs.length)].id);
+      }
     }
 
-    jogo = new CR.Game({
+    var g = new CR.Game({
       seats: assentos,
       mode: cfg.modo,
       lives: Math.max(2, cfg.vidas + (deck.mods.lives || 0)),
@@ -82,15 +100,35 @@
       wildLimit: cfg.curingasPorCombo,
       allowKA2: cfg.kA2,
       turnTimer: cfg.timer,
-      jokersOn: cfg.coringas,
-      blessingsOn: cfg.bencoes,
-      vouchersOn: cfg.pergaminhos,
-      board: s.board
+      jokersOn: !classico && cfg.coringas,
+      blessingsOn: !classico && cfg.bencoes,
+      vouchersOn: !classico && cfg.pergaminhos,
+      board: board
     });
+    if (!classico) aplicarMarcas(g);
+    ligarEventos(g);
+    return g;
+  }
 
-    // Selos e melhorias compradas entram nas cartas do baralho do humano.
-    if (!classico) aplicarMarcas(jogo);
-    ligarEventos(jogo);
+  function comecarPartida(cfg) {
+    var s = CR.save.dados;
+    cfgAtual = cfg;
+    var classico = cfg.modo === 'classico';
+    if (classico) { cfg.coringas = false; cfg.bencoes = false; cfg.pergaminhos = false; }
+    var eu = primeiroHumano(cfg);
+
+    var jogadores = cfg.cadeiras.map(function (c, i) {
+      return {
+        nome: c.nome, bot: c.bot, nivel: c.nivel,
+        equipamento: i === eu ? meuEquipamento(classico) : null
+      };
+    });
+    // O dono do aparelho escolhe o deck, entao ele vai no primeiro lugar da lista.
+    if (eu !== 0) {
+      var t = jogadores[0]; jogadores[0] = jogadores[eu]; jogadores[eu] = t;
+    }
+
+    jogo = criarPartida(cfg, jogadores, s.board);
 
     var raiz = U.mostrarTela('mesa');
     CR.hud.montar(raiz);
@@ -218,6 +256,14 @@
       return;
     }
 
+    // Na rede cada um tem o proprio aparelho: nada de tela de passar a vez,
+    // e este cliente so desenha quando a vez e de quem esta nele.
+    if (CR.online.ativo) {
+      CR.hud.desenhar();
+      if (p.idx === CR.online.meuIdx) armarTimer(p);
+      return;
+    }
+
     // Humano: passa o aparelho se for outra pessoa.
     if (humanosNaMesa() > 1 && ultimoHumano !== null && ultimoHumano !== p.idx) {
       var tela = U.mostrarTela('passa');
@@ -255,6 +301,15 @@
   /* ------------------------------------------------------- furar a fila */
 
   function perguntarFuro(d) {
+    if (!jogo) return;
+    // Dono da sala: se o jogador esta em outro aparelho, a pergunta vai pra la.
+    if (CR.online.modo === 'dono' && CR.online.ehRemoto(d.player.idx)) {
+      if (CR.online.perguntarFuroRemoto(d)) return;
+    }
+    perguntarFuroLocal(d);
+  }
+
+  function perguntarFuroLocal(d) {
     if (!jogo) return;
     var serve = R.needsServes(jogo.needsOf(d.player), d.card);
     var linha = U.el('div', { class: 'cartas-linha' }, [CR.hud.cartaEl(d.card)]);
@@ -313,7 +368,10 @@
       });
     }
     var eliminados = (res.summary && res.summary.killed) || [];
-    var botoes = [{
+    var souConvidado = CR.online.modo === 'convidado';
+    var botoes = [souConvidado ? {
+      rot: 'Fechar', acao: function () {}
+    } : {
       rot: 'Proxima rodada', tipo: 'sim', acao: function () {
         if (!jogo) return;
         jogo.nextRound();
@@ -321,7 +379,7 @@
         tocar();
       }
     }];
-    if (eliminados.length) botoes.unshift({
+    if (eliminados.length && !souConvidado) botoes.unshift({
       rot: 'Passar na lojinha', acao: function () {
         pausado = true;
         CR.app.abrirLojaEntreRodadas();
@@ -330,10 +388,10 @@
 
     var titulo = vencedor ? vencedor.name + (res.summary.kind === 'maoBatida' ? ' veio com a mao batida' :
       res.summary.kind === 'dez' ? ' bateu com 10' : ' bateu') : 'Rodada sem batida';
-    var texto = vencedor
+    var texto = (souConvidado ? 'Esperando o dono da sala comecar a proxima. ' : '') + (vencedor
       ? 'Todo mundo na mesa perde ' + res.summary.base + (res.summary.base > 1 ? ' vidas.' : ' vida.') +
         (eliminados.length ? ' ' + eliminados.map(function (p) { return p.name; }).join(' e ') + ' saiu da mesa.' : '')
-      : 'O baralho girou demais e ninguem fechou. Ninguem perde vida.';
+      : 'O baralho girou demais e ninguem fechou. Ninguem perde vida.');
     U.sobrepor(titulo, texto, botoes, extra);
   }
 
@@ -387,6 +445,15 @@
     }, 900);
   }
 
+  /** Convidado: o Espelho avisou que a partida acabou. */
+  function fimOnline(espelho) {
+    limparTimer();
+    var raiz = U.mostrarTela('fim');
+    var eu = espelho.euSou();
+    CR.screens.fim(raiz, espelho, eu ? eu.chips : 0);
+    if (eu) CR.store.creditar(eu.chips);
+  }
+
   /* ------------------------------------------------------------- boot */
 
   function boot() {
@@ -408,15 +475,24 @@
       if (e.key === 'Escape' && U.telaAtual !== 'menu' && U.telaAtual !== 'mesa') ir('menu');
     });
 
+    CR.online.ligarOuvintes();
     CR.screens.splash(document.getElementById('tela-splash'));
     U.mostrarTela('splash');
     setTimeout(function () { ir('menu'); }, 1100);
   }
 
+  CR.criarPartida = criarPartida;
+
   CR.app = {
     ir: ir, irParaLobby: irParaLobby, comecarPartida: comecarPartida,
     abrirLojaEntreRodadas: abrirLojaEntreRodadas, escalar: escalar,
+    criarPartida: criarPartida, meuEquipamento: meuEquipamento,
+    cartaz: cartaz, perguntarFuroLocal: perguntarFuroLocal,
+    seguirFold: function () { seguirFold(); },
+    fimOnline: fimOnline,
     get jogo() { return jogo; },
+    set jogo(v) { jogo = v; },
+    set cfgAtual(v) { cfgAtual = v; },
     tocar: function () { tocar(); }
   };
 

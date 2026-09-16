@@ -47,7 +47,34 @@ naipes, as partículas do ambiente e a arte das cartas especiais.
 
 ![Vitrine de tabuleiros](imagens/13-tabuleiros-vitrine.png)
 
+## Sala na rede local
+
+![Entrada da sala](imagens/16-sala-entrada.png)
+
+![Sala aberta, do lado do dono](imagens/20-sala-dono.png)
+
+![Mesa do lado de quem entrou](imagens/22-mesa-convidado.png)
+
+Quem entrou vê a própria mão e as vidas dos outros; a mão alheia não chega no aparelho.
+Detalhes em [REDE.md](REDE.md).
+
+## Organizador de mão
+
+![Mão agrupada](imagens/17-organizador.png)
+
+Cada grupo ganha cor, letra e uma etiqueta que diz o que ele é e o que falta. Quando a
+combinação depende do curinga, a etiqueta avisa. O curinga da rodada fica com cadeado.
+
+## Modo clássico
+
+![Lobby no modo clássico](imagens/15-lobby-classico.png)
+
 ## Lojinha
+
+![Baralhos prontos](imagens/14-loja-prontos.png)
+
+A primeira aba é a porta de entrada pra quem não conhece os 60 coringas: seis combinações
+montadas, cada uma com o resumo do que faz e uma linha de como jogar com ela.
 
 ![Coringas Especiais](imagens/03-loja-coringas.png)
 

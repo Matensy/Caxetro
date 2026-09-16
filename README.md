@@ -43,6 +43,30 @@ desconhecida" na primeira vez.
 
 ---
 
+## Jogar com os amigos no mesmo wifi
+
+Quem abre a mesa vira o dono dela: o aparelho dele roda o jogo e distribui pra cada um
+só o que aquele jogador pode ver. Os outros entram com um código de quatro letras.
+
+```bash
+cd server
+go run . -web ../web
+# o servidor imprime o endereço da rede, tipo http://192.168.0.12:8080
+```
+
+1. No aparelho que vai ser o dono: **Jogar no wifi → Abrir mesa**. Aparece o código.
+2. Os amigos abrem aquele endereço no navegador do celular, no mesmo wifi.
+3. Lá dentro: **Jogar no wifi → Entrar numa mesa**, digitam o código e pronto.
+
+![Sala aberta com o código](docs/imagens/20-sala-dono.png)
+
+Dá pra misturar bots na mesa online. Nada sai pra internet, não tem conta e não tem
+cadastro: a sala vive na memória do servidor e some quando o dono fecha.
+
+**A mão de cada um fica no aparelho de cada um.** O dono não manda o estado inteiro pra
+todo mundo — ele monta um retrato por jogador, e a mão alheia simplesmente não vai junto.
+O `tools/test-lan.js` verifica isso a cada execução.
+
 ## O que tem dentro
 
 | | |
@@ -55,13 +79,26 @@ desconhecida" na primeira vez.
 | Tabuleiros temáticos | 12, cada um com feltro, verso, naipes e arte própria |
 | Decks com modificador | 10 |
 | Cosméticos | 20 (animação de batida, moldura, tema de interface, som de batida) |
-| Modos | Partida rápida, Campeonato, Cachetão |
+| Baralhos prontos | 6 combinações montadas, com resumo da estratégia |
+| Modos | Clássico (sem poderes), Partida rápida, Campeonato, Cachetão |
 | Bots | Iniciante, Normal, Difícil |
 | Desafios diários | 3 por dia, sorteados de um bolo de 20 |
 
 Moeda única: **Fichas (₣)**, ganhas jogando. Não existe compra com dinheiro de verdade.
 
 ---
+
+## O organizador de mão
+
+A mão se agrupa sozinha e escreve o que está acontecendo: *"Trinca de 7"*, *"Sequência de
+espadas, 8 ao 10"*, *"Par de 6 — falta 6♥ ou o curinga"*. Cada grupo ganha uma cor, uma
+letra e uma barra embaixo das cartas dele. Quando a combinação só fecha por causa do
+curinga, a etiqueta diz isso na cara.
+
+O curinga da rodada não pode ser descartado: ele aparece com um cadeado e o motor recusa
+a jogada, o que vale também pros bots e pra qualquer cliente na rede.
+
+![Mão agrupada, com o curinga travado](docs/imagens/17-organizador.png)
 
 ## As regras que o motor implementa
 
@@ -88,7 +125,8 @@ Moeda única: **Fichas (₣)**, ganhas jogando. Não existe compra com dinheiro 
 | ![Tabuleiros](docs/imagens/04-loja-tabuleiros.png) | ![Deck builder](docs/imagens/05-loja-deck.png) |
 | ![Halloween](docs/imagens/11-mesa-halloween.png) | ![Cosmos](docs/imagens/11-mesa-cosmos.png) |
 
-Mais fotos em [docs/TELAS.md](docs/TELAS.md).
+Mais fotos em [docs/TELAS.md](docs/TELAS.md). Como o jogo em rede funciona por dentro:
+[docs/REDE.md](docs/REDE.md).
 
 ---
 
@@ -96,7 +134,8 @@ Mais fotos em [docs/TELAS.md](docs/TELAS.md).
 
 ```
 web/js/
-  core/      deck, regras, jogador, controlador da partida
+  core/      deck, regras, organizador de mão, jogador, controlador da partida
+  net/       transporte da sala, espelho da partida, dono e convidado
   powers/    barramento de efeitos + coringas, bênçãos, astrais, selos, pergaminhos
   ai/        bots de três níveis
   shop/      catálogo, economia e desafios
@@ -131,10 +170,12 @@ node tools/test-rules.js    # 34 casos das regras da caxeta
 node tools/test-needs.js    # cruza o cálculo de "na boa" com força bruta em 4000 mãos
 node tools/test-sim.js 60   # 60 partidas só de bots, procurando travamento
 node tools/test-ui.js       # joga uma partida inteira pelo DOM, no Chromium
+node tools/test-lan.js     # dois navegadores numa sala: joga e confere que a mão não vaza
 node tools/screenshots.js   # regera as fotos de docs/imagens
 ```
 
-`test-ui.js` e `screenshots.js` precisam do servidor rodando em `localhost:8080`.
+`test-ui.js`, `test-lan.js` e `screenshots.js` precisam do servidor rodando em
+`localhost:8080`. O `test-ui.js` aceita `CENARIO=classico|cachetao|hotseat|sempoderes`.
 
 ---
 
